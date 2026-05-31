@@ -249,6 +249,58 @@ theorem v2_factSum_erase_max {S : Finset ℕ} (h : S.Nonempty)
     exact hnotdvd_R ((padicValNat_dvd_iff_le (p := 2) hRpos).mpr (by omega))
   omega
 
+/-- **The lift identity.** When two positive numbers share their `2`-adic valuation `k`, the
+valuation of their sum is `k` plus the valuation of the sum of their *odd parts*:
+`v₂(a+b) = k + v₂(a/2^k + b/2^k)`. This is the algebraic heart of the carry kernel: with `a = M!`,
+`b = factSum(S\{M})` (which share valuation `M − s₂ M` by `v2_factSum_erase_max`), it turns
+`m = v₂(factSum S)` into `(M − s₂ M) + v₂(oddpart(M!) + oddpart(factSum(S\{M})))`. So the bound
+`m ≤ M + 2` becomes exactly the odd-part inequality `v₂(oddpart(M!)+oddpart(rest)) ≤ s₂ M + 2` (CRUX).
+The lift can be unbounded in general (`{2ᵗ−2,2ᵗ−1,2ᵗ+1}`); only the power-of-two hypothesis tames it. -/
+theorem v2_add_of_v2_eq {a b k : ℕ} (ha : a ≠ 0) (hb : b ≠ 0)
+    (hka : padicValNat 2 a = k) (hkb : padicValNat 2 b = k) :
+    padicValNat 2 (a + b) = k + padicValNat 2 (a / 2 ^ k + b / 2 ^ k) := by
+  have hda : (2 : ℕ) ^ k ∣ a := (padicValNat_dvd_iff_le ha).mpr (le_of_eq hka.symm)
+  have hdb : (2 : ℕ) ^ k ∣ b := (padicValNat_dvd_iff_le hb).mpr (le_of_eq hkb.symm)
+  set a' := a / 2 ^ k with ha'def
+  set b' := b / 2 ^ k with hb'def
+  have hae : a = 2 ^ k * a' := (Nat.mul_div_cancel' hda).symm
+  have hbe : b = 2 ^ k * b' := (Nat.mul_div_cancel' hdb).symm
+  have ha'pos : a' ≠ 0 := by rintro h0; rw [h0, Nat.mul_zero] at hae; exact ha hae
+  have hsum : a + b = 2 ^ k * (a' + b') := by rw [hae, hbe]; ring
+  have hsumpos : a' + b' ≠ 0 := fun hc => ha'pos (Nat.add_eq_zero_iff.mp hc).1
+  rw [hsum, padicValNat.mul (pow_ne_zero k two_ne_zero) hsumpos, padicValNat.prime_pow]
+
+/-- **The kernel reduction (descent ∘ lift).** For a power-of-two solution `factSum S = 2^m` with
+`m > v₂(M!)` (`M = max' S`), the exponent splits as
+`m = v₂(M!) + v₂( M!/2^{v₂ M!} + factSum(S\{M})/2^{v₂ M!} )` — the top valuation plus the lift of the
+two odd parts. Since `v₂(M!) = M − s₂ M`, the kernel bound `m ≤ M + 2` is **exactly equivalent** to
+the odd-part inequality (CRUX): `v₂(oddpart(M!) + oddpart(factSum(S\{M}))) ≤ s₂ M + 2`. This is the
+precise Lean interface the remaining (genuinely-Lin) argument plugs into. -/
+theorem m_eq_top_val_add_lift {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
+    (hpow : factSum S = 2 ^ m) (hlt : padicValNat 2 ((S.max' h)!) < m) :
+    m = padicValNat 2 ((S.max' h)!)
+        + padicValNat 2
+            ((S.max' h)! / 2 ^ padicValNat 2 ((S.max' h)!)
+              + factSum (S.erase (S.max' h)) / 2 ^ padicValNat 2 ((S.max' h)!)) := by
+  set M := S.max' h with hM
+  set k := padicValNat 2 (M !) with hk
+  have hvfs : padicValNat 2 (factSum S) = m := by rw [hpow, padicValNat.prime_pow]
+  have hsplit : factSum S = M ! + factSum (S.erase M) := by
+    rw [factSum, factSum]; exact (Finset.add_sum_erase S _ (S.max'_mem h)).symm
+  -- descent: v₂(factSum(S\{M})) = v₂(M!) = k
+  have hdesc : padicValNat 2 (factSum (S.erase M)) = k :=
+    v2_factSum_erase_max h (by rw [hvfs]; exact hlt)
+  have hMpos : (M ! : ℕ) ≠ 0 := Nat.factorial_ne_zero M
+  have hRpos : factSum (S.erase M) ≠ 0 := by
+    intro h0
+    have hfsM : factSum S = M ! := by rw [hsplit, h0, Nat.add_zero]
+    have hmk : m = k := by rw [← hvfs, hfsM]
+    omega
+  -- lift: v₂(M! + R) = k + v₂(M!/2^k + R/2^k)
+  have hlift := v2_add_of_v2_eq hMpos hRpos hk.symm hdesc
+  rw [← hsplit, hvfs] at hlift
+  exact hlift
+
 /-! ## Step 4 — the unique-minimum case is bounded
 
 Combining the size sandwich (`M! ≤ factSum`) with Step 3 (`v₂(factSum) = v₂(a₀!) ≤ a₀ ≤ M`):
