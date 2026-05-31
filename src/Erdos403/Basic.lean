@@ -208,38 +208,39 @@ is *exactly* `v₂(M!)`. Reason: `2^m = M! + R` with `v₂(M!) < m = v₂(2^m)`,
 the remainder `R = factSum (S.erase M)` must share valuation (and cancel up to `m`). This relates the
 top index `M` to the bottom cancellation structure — the engine of the carry cascade. Mirrors the
 divisibility sandwich of `v2_factSum_of_unique_min`. -/
-theorem v2_factSum_erase_max {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
-    (hpow : factSum S = 2 ^ m) (hlt : padicValNat 2 ((S.max' h)!) < m) :
+theorem v2_factSum_erase_max {S : Finset ℕ} (h : S.Nonempty)
+    (hlt : padicValNat 2 ((S.max' h)!) < padicValNat 2 (factSum S)) :
     padicValNat 2 (factSum (S.erase (S.max' h))) = padicValNat 2 ((S.max' h)!) := by
   set M := S.max' h with hM
   set k := padicValNat 2 (M !) with hk
   -- factSum S = M! + R, with R := factSum (S.erase M)
   have hsplit : factSum S = M ! + factSum (S.erase M) := by
     rw [factSum, factSum]; exact (Finset.add_sum_erase S _ (S.max'_mem h)).symm
-  -- R ≠ 0: else factSum S = M! = 2^m forces v₂(M!) = m, contradicting hlt.
+  have hfspos : factSum S ≠ 0 := by
+    have hle : M ! ≤ factSum S := by rw [hsplit]; omega
+    have := Nat.factorial_pos M; omega
+  -- R ≠ 0: else factSum S = M! forces v₂(factSum S) = v₂(M!) = k, contradicting hlt.
   have hRpos : factSum (S.erase M) ≠ 0 := by
     intro h0
-    rw [h0, Nat.add_zero, hpow] at hsplit
-    rw [← hsplit, padicValNat.prime_pow] at hk
-    omega
+    rw [h0, Nat.add_zero] at hsplit
+    rw [hsplit] at hlt; omega
   -- the two halves of the sandwich for M!
   have hdvd_M : (2 : ℕ) ^ k ∣ M ! :=
     (padicValNat_dvd_iff_le (p := 2) (Nat.factorial_ne_zero M)).mpr le_rfl
   have hnotdvd_M : ¬ (2 : ℕ) ^ (k + 1) ∣ M ! := by
     rw [padicValNat_dvd_iff_le (p := 2) (Nat.factorial_ne_zero M)]; omega
-  -- 2^k and 2^{k+1} divide 2^m (since k < m)
-  have hdvd_pow_k : (2 : ℕ) ^ k ∣ 2 ^ m := pow_dvd_pow 2 (by omega)
-  have hdvd_pow_k1 : (2 : ℕ) ^ (k + 1) ∣ 2 ^ m := pow_dvd_pow 2 (by omega)
+  -- 2^k and 2^{k+1} divide factSum S (since k < v₂(factSum S))
+  have hdvd_fs_k : (2 : ℕ) ^ k ∣ factSum S :=
+    (padicValNat_dvd_iff_le (p := 2) hfspos).mpr (by omega)
+  have hdvd_fs_k1 : (2 : ℕ) ^ (k + 1) ∣ factSum S :=
+    (padicValNat_dvd_iff_le (p := 2) hfspos).mpr (by omega)
   -- hence 2^k ∣ R but 2^{k+1} ∤ R
   have hdvd_R : (2 : ℕ) ^ k ∣ factSum (S.erase M) := by
-    have : (2 : ℕ) ^ k ∣ factSum S := hpow ▸ hdvd_pow_k
-    rw [hsplit] at this
-    exact (Nat.dvd_add_right hdvd_M).mp this
+    rw [hsplit] at hdvd_fs_k; exact (Nat.dvd_add_right hdvd_M).mp hdvd_fs_k
   have hnotdvd_R : ¬ (2 : ℕ) ^ (k + 1) ∣ factSum (S.erase M) := by
     intro hc
-    have hfs : (2 : ℕ) ^ (k + 1) ∣ factSum S := hpow ▸ hdvd_pow_k1
-    rw [hsplit] at hfs
-    exact hnotdvd_M ((Nat.dvd_add_iff_left hc).mpr hfs)
+    rw [hsplit] at hdvd_fs_k1
+    exact hnotdvd_M ((Nat.dvd_add_iff_left hc).mpr hdvd_fs_k1)
   -- conclude v₂(R) = k
   have hle : k ≤ padicValNat 2 (factSum (S.erase M)) :=
     (padicValNat_dvd_iff_le (p := 2) hRpos).mp hdvd_R
