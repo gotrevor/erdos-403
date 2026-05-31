@@ -151,6 +151,34 @@ one-lemma proof found. **Recommendation:** discharge `tied_carry_ceiling` direct
 finiteness-modulo-Lin + sharp-modulo-Lin as the honest deliverable. The FNS kills remain valuable:
 they narrow `tied_carry_ceiling`'s residual scope to "tied ∧ lower-half-odd."
 
+## The kernel, in its cleanest form (session-4 quantitative)
+
+The whole problem reduces to **one absolute-constant carry bound**:
+> **`carry_gap`**: `∃ B, ∀ S nonempty, v₂(factSum S) ≤ max' S + B`.
+
+This *immediately* gives `carry_ceiling` (`factSum S = 2^m ⟹ m = v₂(2^m) = v₂(factSum S) ≤ max'S+B`)
+— no tied/unique-min split, no powers of two. So `carry_gap` ⟹ `erdos_403_finite`.
+
+**Quantitative evidence** (exhaustive over tied-bottom `S ⊆ {0..K}`):
+- general gap `v₂(factSum S) − max'S`: **plateaus at 4** for `K = 9..16` (extremal `{6,7,9}`:
+  `6!+7!+9! = 2¹³·45`, `max=9`). So `carry_gap` holds with **`B = 4`** (conjectured absolute).
+- restricted to *power-of-two* factSums: gap **≤ 2** (only `m ∈ {0,1,2,3,5,7}`; extremal `{2,3,5}→2⁷`,
+  `max=5`). With `min'_le_two`, those have bottom pinned to `{2,3}` (or `{0,1}` twin).
+
+**Why `B` is bounded — the skipped-level mechanism (the proof intuition):** `v₂(i!)` takes each value
+on a pair `{2j,2j+1}` and *skips* values between pairs (`…,8,8,10,10,11,11,15,15,…` — no `9`, no
+`12,13,14`). A bottom pair carries up to a level; it can carry *again* only if that level already
+holds a factorial; but most levels are skipped, so the chain stalls fast. This is the heart of the
+unpublished Lin/Frankl estimate.
+
+**Why there's no cheap proof:** the only free bound is `v₂(factSum S) ≤ log₂(factSum S) ≈ M log M`
+(the sandwich gives `factSum S < 2·M!`), which is *far* above `M + B`. Closing the gap to an absolute
+constant genuinely needs the cascade analysis above — confirmed by independently re-deriving the
+valuation framework (session 4) and the prior sessions' `Basic.lean`. **Recommended attack:** prove
+`carry_gap` by tracking the carry level-by-level using the pair structure (`v2_factorial_*` lemmas in
+`Basic.lean`), exploiting that occupied levels are sparse. Multi-session; a clean target for an
+automated prover (Aristotle) since it's pure `ℕ` number theory with no powers of two.
+
 ## Confidence
 A: ~85% (standard, just laborious). B: ~80% (modular, but FNS-digit-of-`2^m` lemmas need care).
 C: ~50% (the real Lin kernel, now better-scoped). D: ~90% once A–C land.
