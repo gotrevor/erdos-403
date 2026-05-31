@@ -79,15 +79,19 @@ no tied/untied split.** This is where the real work (item 1) lives.
    `m ≤ 7 ⇒ factSum ≤ 128 ⇒ M ≤ 5`, finite. Delete/retire `tied_carry_ceiling`.
 
 ## Status ledger
-- [ ] A1 factDigit + bound
-- [ ] A2 reconstruction
-- [ ] A3 distinct-factorials criterion (idx ≥ 1)
-- [ ] A4 `0!` bridge
-- [ ] A5 decidability
+- [x] A1 factDigit + bound — `factDigit`, `factDigit_le`
+- [x] A2 reconstruction — `factDigit_recon` (telescoping), `factDigit_sum`
+- [x] A3 distinct-factorials criterion (idx ≥ 1) — `factDigit_sum_factorial` (digits = indicators),
+      `factDigit_factSum_le_one`
+- [x] A4 `0!` bridge — `factSum_digit_dichotomy`, packaged as `not_factSum_of_digits`
+- [~] A5 decidability — subsumed: `not_factSum_of_digits` is the interface (no full `Decidable` needed)
 - [ ] B6 even/odd modular kills
 - [ ] C7 residual middle-digit (the hard kernel)
 - [ ] D8 sharp assembly
 - [ ] D9 reroute finite, retire `tied_carry_ceiling`
+
+**Phase A done (session 3), all axiom-clean.** The endgame now only needs, for each `m ≥ 8`, a
+positive-index factorial digit `≥ 2` in *both* `2^m` and `2^m − 1` (→ `not_factSum_of_digits`).
 
 ## Confidence
 A: ~85% (standard, just laborious). B: ~80% (modular, but FNS-digit-of-`2^m` lemmas need care).
