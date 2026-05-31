@@ -255,7 +255,56 @@ the **tied-pair** case, where a bottom pair `{a₀, a₀+1}` carries. The claim 
 *bounded*: `v₂(factSum S) = m` exceeds the bottom index `max' S` by at most an absolute constant
 `B`. This is exactly the bounded-carry estimate Lin/Frankl proved and never published. -/
 
-/-- **The sharp tied-pair carry ceiling (Step 5, `sorry` — THE reconstruction kernel).** When the
+/-- `8 ∣ a!` for `a ≥ 4` (since `8 ∣ 4! = 24` and `4! ∣ a!`). -/
+theorem eight_dvd_factorial {a : ℕ} (ha : 4 ≤ a) : (8 : ℕ) ∣ a ! :=
+  (by decide : (8 : ℕ) ∣ 4 !).trans (Nat.factorial_dvd_factorial ha)
+
+/-- **The `a₀ = 0`-with-`2` case dies by parity mod 8.** If `{0,1,2} ⊆ S` then `factSum S ≢ 0
+(mod 8)`: the bottom three contribute `0!+1!+2! = 4`, an optional `3!` adds `6`, and every `a ≥ 4`
+term is `≡ 0`. So `factSum S ≡ 4` or `2 (mod 8)`, never `0`; hence no such sum is `2^m` with
+`m ≥ 3`. (This is what lets the tied case `a₀ = 0, 2 ∈ S` collapse to `m ≤ 2`.) -/
+theorem not_eight_dvd_factSum_of_mem_012 {S : Finset ℕ}
+    (h0 : 0 ∈ S) (h1 : 1 ∈ S) (h2 : 2 ∈ S) : ¬ (8 : ℕ) ∣ factSum S := by
+  by_cases h3 : 3 ∈ S
+  · -- `{0,1,2,3} ⊆ S`; `factSum = 10 + (multiple of 8)`, and `8 ∤ 10`.
+    have hsub : ({0, 1, 2, 3} : Finset ℕ) ⊆ S := by intro x hx; fin_cases hx <;> assumption
+    have hrest : (8 : ℕ) ∣ ∑ a ∈ S \ {0, 1, 2, 3}, a ! := by
+      refine Finset.dvd_sum fun a ha => eight_dvd_factorial ?_
+      have hns : a ∉ ({0, 1, 2, 3} : Finset ℕ) := (Finset.mem_sdiff.mp ha).2
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hns; omega
+    have hsplit : factSum S = (∑ a ∈ S \ {0, 1, 2, 3}, a !) + ∑ a ∈ ({0, 1, 2, 3} : Finset ℕ), a ! :=
+      (Finset.sum_sdiff hsub).symm
+    have hval : (∑ a ∈ ({0, 1, 2, 3} : Finset ℕ), a !) = 10 := by decide
+    intro hdvd; rw [hsplit, hval] at hdvd; omega
+  · -- `{0,1,2} ⊆ S`, `3 ∉ S`; `factSum = 4 + (multiple of 8)`, and `8 ∤ 4`.
+    have hsub : ({0, 1, 2} : Finset ℕ) ⊆ S := by intro x hx; fin_cases hx <;> assumption
+    have hrest : (8 : ℕ) ∣ ∑ a ∈ S \ {0, 1, 2}, a ! := by
+      refine Finset.dvd_sum fun a ha => eight_dvd_factorial ?_
+      have hmem := Finset.mem_sdiff.mp ha
+      have hns : a ∉ ({0, 1, 2} : Finset ℕ) := hmem.2
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hns
+      have h3a : a ≠ 3 := by rintro rfl; exact h3 hmem.1
+      omega
+    have hsplit : factSum S = (∑ a ∈ S \ {0, 1, 2}, a !) + ∑ a ∈ ({0, 1, 2} : Finset ℕ), a ! :=
+      (Finset.sum_sdiff hsub).symm
+    have hval : (∑ a ∈ ({0, 1, 2} : Finset ℕ), a !) = 4 := by decide
+    intro hdvd; rw [hsplit, hval] at hdvd; omega
+
+/-- **The cascade kernel — the sole remaining `sorry`, now bottom-pinned to `a₀ = 2`.** With the
+bottom *exactly* the tied pair `{2,3}` (`min' S = 2`, `3 ∈ S`) and `factSum S = 2^m`, the carry
+cascades to `m ≤ max' S + 2`. `tied_sharp_ceiling` reduces its whole `Even (min' S)` hypothesis to
+this one statement: `min'_le_two` pins `a₀ ∈ {0,2}`, the `a₀ = 0 ∧ 2 ∈ S` case dies by
+`not_eight_dvd_factSum_of_mem_012`, and the `a₀ = 0 ∧ 2 ∉ S` case maps to here by the `0!+1! = 2!`
+twin surgery. So this is the genuine, irreducible Lin/Frankl carry estimate — everything else in the
+file is reconstructed and axiom-clean. The cascade: `2^m = 8 + ∑_{a≥4∈S} a!`, i.e.
+`2^{m-3} = 1 + ∑_{a≥4} a!/8`; `a!/8` is odd iff `a ∈ {4,5}`, so parity pins membership one pair up
+and recurses, terminating at `m ≤ max' S + 2` (`{2,3,5} ↦ 2⁷` extremal). -/
+theorem cascade_two {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
+    (hmin : S.min' h = 2) (hmem3 : 3 ∈ S) (hpow : factSum S = 2 ^ m) :
+    m ≤ S.max' h + 2 := by
+  sorry
+
+/-- **The sharp tied-pair carry ceiling (Step 5).** When the
 bottom is a tied pair (`a₀ = min' S` even, `a₀+1 ∈ S`) and `factSum S = 2^m`, the carry from
 `(2j)!+(2j+1)! = (2j)!·2·(j+1)` cascades only to `m ≤ max' S + 2` (explicit `B = 2`, attained by
 `{2,3,5} ↦ 2⁷`). This lone statement is the entire unpublished Lin/Frankl estimate; everything else
@@ -269,7 +318,83 @@ without it.) With `B = 2` explicit, this single kernel discharges **both** `erdo
 theorem tied_sharp_ceiling (S : Finset ℕ) (h : S.Nonempty) (m : ℕ)
     (he : Even (S.min' h)) (hmem : S.min' h + 1 ∈ S) (hpow : factSum S = 2 ^ m) :
     m ≤ S.max' h + 2 := by
-  sorry
+  -- Base case `max' S ≤ 2`: `factSum S ≤ 0!+1!+2! = 4 ⟹ m ≤ 2`.
+  rcases Nat.lt_or_ge (S.max' h) 3 with hM2 | hM3
+  · have hsub : S ⊆ ({0, 1, 2} : Finset ℕ) := by
+      intro a ha
+      have := S.le_max' a ha
+      simp only [Finset.mem_insert, Finset.mem_singleton]; omega
+    have hle4 : factSum S ≤ 4 :=
+      le_trans (Finset.sum_le_sum_of_subset hsub) (by decide)
+    have hm2 : m ≤ 2 := by
+      by_contra hc
+      have : (2 : ℕ) ^ 3 ≤ 2 ^ m := Nat.pow_le_pow_right (by norm_num) (by omega)
+      rw [hpow] at hle4; omega
+    omega
+  · -- `max' S ≥ 3`. With `min'_le_two` and `Even`, the bottom is `a₀ ∈ {0, 2}`.
+    have hle2 := min'_le_two h hpow
+    rcases (by omega : S.min' h = 0 ∨ S.min' h = 1 ∨ S.min' h = 2) with hm0 | hm1 | hm2
+    · -- `a₀ = 0`: `0 ∈ S` and (from `hmem`) `1 ∈ S`.
+      have h0 : (0 : ℕ) ∈ S := hm0 ▸ S.min'_mem h
+      have h1 : (1 : ℕ) ∈ S := by have := hmem; rw [hm0] at this; simpa using this
+      by_cases h2 : (2 : ℕ) ∈ S
+      · -- `2 ∈ S`: mod-8 parity forbids `8 ∣ factSum`, so `m ≤ 2`.
+        have hnd := not_eight_dvd_factSum_of_mem_012 h0 h1 h2
+        have hm2 : m ≤ 2 := by
+          by_contra hc
+          exact hnd (by rw [hpow]; exact (by norm_num : (8 : ℕ) = 2 ^ 3) ▸ pow_dvd_pow 2 (by omega))
+        omega
+      · -- `2 ∉ S`: twin surgery `{0,1} ↦ {2}` (since `0!+1! = 2 = 2!`), preserving `factSum`,
+        -- `max'` (as `max' S ≥ 3`) and landing `min' = 2`; then dispatch via `cascade_two`.
+        set T := (S.erase 0).erase 1 with hT
+        set S' := insert 2 T with hS'
+        have hT_ge : ∀ a ∈ T, 3 ≤ a := by
+          intro a ha
+          rw [hT, Finset.mem_erase, Finset.mem_erase] at ha
+          obtain ⟨ha1, ha0, haS⟩ := ha
+          have : a ≠ 2 := fun hc => h2 (hc ▸ haS)
+          omega
+        have h2T : (2 : ℕ) ∉ T := fun hc => by have := hT_ge 2 hc; omega
+        have e1 : factSum S = 0 ! + ∑ a ∈ S.erase 0, a ! := by
+          rw [factSum]; exact (Finset.add_sum_erase S _ h0).symm
+        have h1e : (1 : ℕ) ∈ S.erase 0 := Finset.mem_erase.mpr ⟨one_ne_zero, h1⟩
+        have e2 : ∑ a ∈ S.erase 0, a ! = 1 ! + ∑ a ∈ (S.erase 0).erase 1, a ! :=
+          (Finset.add_sum_erase _ _ h1e).symm
+        have hfs_S : factSum S = 2 + ∑ a ∈ T, a ! := by
+          rw [e1, e2, ← hT, Nat.factorial_zero, Nat.factorial_one]; ring
+        have hfs_S' : factSum S' = 2 + ∑ a ∈ T, a ! := by
+          rw [hS', factSum, Finset.sum_insert h2T, Nat.factorial_two]
+        have hpow' : factSum S' = 2 ^ m := by rw [hfs_S', ← hfs_S, hpow]
+        have h' : S'.Nonempty := ⟨2, by rw [hS']; exact Finset.mem_insert_self 2 T⟩
+        have hmin' : S'.min' h' = 2 := by
+          refine le_antisymm (S'.min'_le 2 (by rw [hS']; exact Finset.mem_insert_self 2 T)) ?_
+          refine S'.le_min' h' 2 (fun a ha => ?_)
+          rw [hS', Finset.mem_insert] at ha
+          rcases ha with rfl | ha
+          · rfl
+          · have := hT_ge a ha; omega
+        have hMmem : S.max' h ∈ T := by
+          rw [hT, Finset.mem_erase, Finset.mem_erase]
+          exact ⟨by omega, by omega, S.max'_mem h⟩
+        have hmax' : S'.max' h' = S.max' h := by
+          refine le_antisymm (S'.max'_le h' _ (fun a ha => ?_)) ?_
+          · rw [hS', Finset.mem_insert] at ha
+            rcases ha with rfl | ha
+            · omega
+            · exact S.le_max' a (by rw [hT, Finset.mem_erase, Finset.mem_erase] at ha; exact ha.2.2)
+          · exact S'.le_max' (S.max' h) (by rw [hS']; exact Finset.mem_insert_of_mem hMmem)
+        by_cases h3' : (3 : ℕ) ∈ S'
+        · have := cascade_two h' hmin' h3' hpow'; rw [hmax'] at this; exact this
+        · -- not tied (`min' = 2` even but `3 ∉ S'`) ⟹ unique-min ⟹ `m ≤ 3 ≤ max' + 2`.
+          have hnt : ¬ (Even (S'.min' h') ∧ S'.min' h' + 1 ∈ S') := by
+            rw [hmin']; rintro ⟨_, hc⟩; exact h3' hc
+          have hm3 := m_le_max_of_unique_min h' (unique_min_of_not_tied h' hnt) hpow'
+          omega
+    · -- `a₀ = 1` is impossible: `Even 1` is false.
+      rw [hm1] at he; exact absurd he (by decide)
+    · -- `a₀ = 2`: `3 ∈ S` (from `hmem`); apply the cascade kernel directly.
+      have hmem3 : (3 : ℕ) ∈ S := by have := hmem; rw [hm2] at this; simpa using this
+      exact cascade_two h hm2 hmem3 hpow
 
 /-- **Tied-pair carry ceiling.** The existential form `carry_ceiling`/`erdos_403_finite` consume,
 now *proven* from the sharp kernel with the explicit witness `B = 2`. -/
