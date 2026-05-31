@@ -157,8 +157,8 @@ digit `≥ 2` at some positive index — so `2^m` is not a sum of distinct facto
 theorem two_pow_offending {m : ℕ} (hm : 8 ≤ m) : ∃ i, 1 ≤ i ∧ 2 ≤ factDigit i (2 ^ m) := by
   rcases Nat.lt_or_ge m 10 with h9 | h10
   · interval_cases m
-    · exact ⟨2, by norm_num, by native_decide⟩
-    · exact ⟨5, by norm_num, by native_decide⟩
+    · exact ⟨2, by norm_num, by decide⟩
+    · exact ⟨5, by norm_num, by decide⟩
   · obtain ⟨i, hi_mem, hi_d⟩ :=
       base_offending (10 + (m - 10) % 1620)
         (Finset.mem_Ico.mpr ⟨by omega,
@@ -173,8 +173,8 @@ theorem two_pow_sub_one_offending {m : ℕ} (hm : 8 ≤ m) :
     ∃ i, 1 ≤ i ∧ 2 ≤ factDigit i (2 ^ m - 1) := by
   rcases Nat.lt_or_ge m 10 with h9 | h10
   · interval_cases m
-    · exact ⟨3, by norm_num, by native_decide⟩
-    · exact ⟨5, by norm_num, by native_decide⟩
+    · exact ⟨3, by norm_num, by decide⟩
+    · exact ⟨5, by norm_num, by decide⟩
   · obtain ⟨i, hi_mem, hi_d⟩ :=
       base_offending_sub (10 + (m - 10) % 1620)
         (Finset.mem_Ico.mpr ⟨by omega,
