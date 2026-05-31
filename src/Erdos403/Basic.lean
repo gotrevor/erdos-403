@@ -232,6 +232,22 @@ theorem unique_min_bound {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
   by_contra hc
   exact absurd hMM (Nat.not_le.mpr (two_pow_lt_factorial (by omega)))
 
+/-- **The bottom index is at most 2.** Since `a₀ = min' S` divides every `a!` (`a ∈ S`), `a₀!`
+divides `factSum S = 2^m`, so `a₀!` is a power of two — which fails once `a₀ ≥ 3` (then `3 ∣ a₀!`
+but `3 ∤ 2^m`). So `min' S ∈ {0,1,2}` for *every* solution. (Enumeration: the only solutions are
+`m ∈ {0,1,2,3,5,7}`, values `1,2,4,8,32,128`; each `min=2` solution has a `min=0` twin via
+`0!+1! = 2 = 2!`.) -/
+theorem min'_le_two {S : Finset ℕ} (h : S.Nonempty) {m : ℕ} (hpow : factSum S = 2 ^ m) :
+    S.min' h ≤ 2 := by
+  by_contra hc
+  have hge : 3 ≤ S.min' h := by omega
+  have hdvd : (S.min' h)! ∣ 2 ^ m := by
+    rw [← hpow, factSum]
+    exact Finset.dvd_sum fun a ha => Nat.factorial_dvd_factorial (S.min'_le a ha)
+  have h3 : (3 : ℕ) ∣ 2 ^ m := (Nat.dvd_factorial (by norm_num) hge).trans hdvd
+  have h32 : (3 : ℕ) ∣ 2 := Nat.Prime.dvd_of_dvd_pow (by norm_num) h3
+  omega
+
 /-! ## Step 5 — the carry ceiling (research kernel)
 
 The single remaining gap. In the unique-min case Step 4 already gives `m ≤ M`; the content is

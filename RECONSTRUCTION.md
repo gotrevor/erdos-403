@@ -109,14 +109,41 @@ three + `sorryAx`). `unique_min_bound` and the whole unique-min half are axiom-c
 `M ≤ 3` directly (sharper than the doc) via `v₂(a₀!) ≤ a₀`, sidestepping the `a₀ = 0` edge. The strict
 upper sandwich `< 2·M!` was corrected to non-strict `≤ 2·M!` (false at `M∈{1,2}`, e.g. `{0,1}↦2`).
 
-### The kernel, further reduced (next-session attack)
-`tied_carry_ceiling` reduces to **"`v₂(K)` is absolutely bounded"** where `K := factSum S / a₀!`:
-since `m = v₂(factSum) = v₂(a₀!) + v₂(K)` and `v₂(a₀!) ≤ a₀ ≤ M`, we get `m ≤ M + v₂(K)`. So it
-suffices to bound `v₂(K) ≤ B`. Here `K = (a₀+2) + ∑_{a∈S, a≥a₀+2} a!/a₀!`: the tied bottom collapses
-`1 + (a₀+1) = a₀+2` (even, since `a₀` even), and every higher term is even (`v₂(a!/a₀!) ≥ 1` by
-`v2_factorial_lt_factorial_add_two`). So `K` is even; the open part is showing its 2-adic valuation
-can't cascade past an absolute `B` (crude `B` ⟹ finiteness; Lin's sharp `B = 254` when `2 ∈ S`).
-This is the natural Aristotle race target — a single self-contained `v₂`-bounding lemma.
+### The actual solution set (enumerated, session 2)
+Brute force over indices `0..12` (`tools/`-style check): the **only** solutions are
+`m ∈ {0,1,2,3,5,7}`, values `1, 2, 4, 8, 32, 128`. Largest `2⁷ = 128`. Each appears with `min = 0`
+and (via the `0!+1! = 2 = 2!` duality) a `min = 2` twin:
+
+| m | value | `min=0` form | `min=2` form |
+|---|---|---|---|
+| 0 | 1 | `{0}` (`= {1}`) | — (`1 < 2!`) |
+| 1 | 2 | `{0,1}` | `{2}` |
+| 2 | 4 | `{0,1,2}` | — (no clean twin) |
+| 3 | 8 | `{0,1,3}` | `{2,3}` |
+| 5 | 32 | `{0,1,3,4}` | `{2,3,4}` |
+| 7 | 128 | `{0,1,3,5}` | `{2,3,5}` |
+
+Note `m ∈ {4,6}` have **no** representation (16, 64 aren't sums of distinct factorials). This is
+richer than the original handoff (which listed only `2⁷=2!+3!+5!`); `{2,3,4}=32` is a genuine
+solution we'd missed. `erdos_403_sharp` is therefore `m ≤ 7`, attained.
+
+### `min'_le_two` ✅ DONE — reduces the kernel bottom to `a₀ ∈ {0,2}`
+Proven & axiom-clean: `factSum S = 2^m ⟹ min' S ≤ 2` (because `a₀! ∣ 2^m` forces `a₀!` to be a power
+of two). With the tied hypothesis (`a₀` even), the kernel's bottom is now exactly `a₀ ∈ {0, 2}`.
+
+### Why the kernel is genuinely hard (the cascade, traced)
+The earlier "bound `v₂(K)`" framing was **wrong** (`v₂(K) = m − v₂(a₀!) ≈ m`, circular). The real
+content: for `a₀ = 2`, `factSum = 2!+3!+∑_{a≥4} a! = 8 + ∑_{a≥4}a!`; dividing by 8,
+`1 + ∑_{a≥4} a!/8 = 2^{m-3}`. Now `a!/8` is **odd** exactly for `a∈{4,5}` (`=3,15`), even for `a≥6`.
+So the parity at each level pins which of two consecutive indices may appear, and *recurses one level
+up* with the target valuation bumped. The branch tree is finite but intricate:
+`{2,3}→8 (stop)`; add `4 → {2,3,4}=32 (stop)`; add `5 → {2,3,5}=128 (stop)`; any higher addition
+forces `∑_{a≥6} a!/8 = 4·(odd)`, recursing again — and Lin's analysis shows it always terminates by
+`128`. **Termination of this cascade is the irreducible Lin/Frankl kernel** (`tied_carry_ceiling`);
+there is no cheap crude bound — `v₂(factSum)` is genuinely unbounded over general tied pairs
+(`{2k,2k+1}` gives `v₂ ≈ 2k`), and only the odd-part-`=1` constraint tames it. This is the clean
+self-contained target for the Aristotle race: *"the cascade `1 + ∑_{a≥4} a!/8 = 2^{m-3}` has no
+solution with `m > 7`."*
 
 ## Confidence
 - Steps 1–4 + ties + step 6 (the whole **unique-min** half + finiteness skeleton): **DONE** (was ~85%).
