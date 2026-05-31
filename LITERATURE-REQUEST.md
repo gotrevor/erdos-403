@@ -43,6 +43,9 @@ indices, `factSum S = ∑_{a∈S} a! = 2^m`, `M = max S`. Writing `oddpart(x) = 
 > **(CRUX)** `v₂( oddpart(M!) + oddpart(factSum(S\{M})) ) ≤ s₂(M) + 2`
 > where `s₂` = binary digit-sum, `v₂` = 2-adic valuation.
 
+(In the Lean source this is the lemma `cascade_crux` in `src/Erdos403/Basic.lean` — the single
+remaining `sorry`. Everything else is proven and axiom-clean.)
+
 Equivalently (and how Lin likely phrased it): **for a sum of distinct factorials equal to a power of
 two, `m ≤ M + 2`** (the exponent exceeds the top index by at most 2). NOTE: this is *false* without the
 power-of-two hypothesis — the family `{2ᵗ−2, 2ᵗ−1, 2ᵗ+1}` gives `v₂(factSum) − M = 2t−2 → ∞`. So the

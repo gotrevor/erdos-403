@@ -218,6 +218,17 @@ Mechanism to formalize (the bottom-up parity cascade, odd-part-1 essential):
 valuation bumped. **Invariant to prove:** the carry can chain up to level `ℓ` only by occupying a
 *pair* `{2j,2j+1}`, and the residual-odd constraint forces termination by `m ≤ M+2`.
 
+### ✅ Progress (session 6) — C-α and C-β landed; kernel is now `cascade_crux`
+All axiom-clean, build green:
+- `v2_factSum_erase_max` (C-α, generalized): descent — `v₂(factSum(S\{M})) = v₂(M!)` whenever
+  `v₂(M!) < v₂(factSum S)`. Iterates, but verified it does **not** bound `m` (the top lift is free).
+- `v2_add_of_v2_eq` (lift): `v₂(a)=v₂(b)=k ⟹ v₂(a+b) = k + v₂(a/2^k + b/2^k)`.
+- `m_eq_top_val_add_lift` (descent ∘ lift): `m = v₂(M!) + v₂(oddpart(M!) + oddpart(factSum(S\{M})))`.
+- **`cascade_crux`** — the lone `sorry`, now an **isolated, named 2-adic inequality**
+  `v₂(oddpart(M!) + oddpart(factSum(S\{M}))) ≤ s₂ M + 2`, with the odd-`m` foothold proven inside.
+  `cascade_two` is sorry-free, discharging from `cascade_crux`. **The remaining work = prove
+  `cascade_crux`** (= C-γ). This is the clean target for the literature / an Aristotle submission.
+
 ### Staged milestones (each independently committable, build-green)
 - **C-α (1 session): the `÷8` reduction lemma.** Formalize `factSum S = 8 + ∑_{a≥4∈S}a!` and
   `∑_{a≥4∈S} a!/8 = 2^{m-3} − 1` as a clean rewrite (needs `8 ∣ a!` for `a≥4`, have
