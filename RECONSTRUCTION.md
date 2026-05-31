@@ -95,19 +95,21 @@ sharp `m ≤ 7` (and the sibling #404 `3^m` result, `m∈{0,1,2,3,6}`, by the sa
 
 | # | target | depends on | mathlib / notes |
 |---|--------|-----------|-----------------|
-| 1 | `factSum_lt_two_mul_factorial : 1 ≤ M → factSum S < 2 * M !` + lower `M! ≤ factSum S` | — | `Finset.sum_le_sum`, `Nat.factorial`; `max'`/`min'` for `M`,`a₀` |
-| 2 | `v2_factorial : v₂ (n !) = n - s₂ n` wrapper + monotone + `ties_only_pairs` | B | `sub_one_mul_padicValNat_factorial`, `Nat.digits` |
-| 3 | `v2_factSum_of_unique_min : (∀ a∈S, a≠a₀ → v₂(a₀!) < v₂(a!)) → v₂(factSum S) = v₂(a₀!)` | 2 | `padicValNat` of sum; factor `a₀!`; parity of the cofactor |
-| 4 | `unique_min_bound : unique-min ∧ factSum=2^m → M ≤ 3` (then `decide` the ≤3 cases) | 1,3 | combine sandwich + Lemma C |
+| 1 | ✅ **DONE** `factorial_max_le_factSum` (lower) + `factSum_le_two_mul_factorial_max` (upper, **non-strict** `≤ 2·M!` — strict `<` is false at `M∈{1,2}`) + `sum_range_factorial_le` + `two_pow_lt_factorial` | — | `Finset.single_le_sum`, `sum_le_sum_of_subset`, `Finset.sum_range_succ` |
+| 2 | ✅ **partial** `padicValNat_two_factorial` (Legendre wrapper) + `_le` + `_mono` DONE. `ties_only_pairs` **TODO** (deferred — needed for step 6, not for 3/4) | B | `sub_one_mul_padicValNat_factorial`, `padicValNat_dvd_iff_le`, `Nat.factorization`-free via dvd |
+| 3 | ✅ **DONE** `v2_factSum_of_unique_min : (∀ a∈S, a≠a₀ → v₂(a₀!) < v₂(a!)) → v₂(factSum S) = v₂(a₀!)` | 2 | split off `a₀!` via `Finset.add_sum_erase`; `2^k ∣`/`2^{k+1}∤` sandwich + `Nat.dvd_add_left` |
+| 4 | ✅ **DONE** `unique_min_bound : unique-min ∧ factSum=2^m → M ≤ 3` | 1,3 | `m = v₂(a₀!) ≤ a₀ ≤ M` ⟹ `M! ≤ 2^M` ⟹ `M ≤ 3` via `two_pow_lt_factorial` |
 | 5 | **carry ceiling** `factSum=2^m → m ≤ B` (B crude for finiteness) | 2,3 | ⚠️ the research kernel above |
-| 6 | `erdos_403_finite` | 1,4,5 | `M` bounded ⟹ `S ⊆ range (N+1)` ⟹ `Set.Finite` |
+| 6 | `erdos_403_finite` | 1,4,5,ties | `M` bounded ⟹ `S ⊆ range (N+1)` ⟹ `Set.Finite`; needs `ties_only_pairs` to reduce non-unique-min ⟹ tied-pair-at-bottom |
 | 7 | factorial-base digit criterion + endgame `decide` → `erdos_403_sharp (m ≤ 7)` | 5 | factorial base may need building; small finite check |
 
-Steps 1–4 are GREEN and should land first (they already cut the problem to `M ≤ 3` ∪ tied-pair).
-Step 5 is the gate; steps 6–7 follow quickly once `B` exists.
+**Steps 1–4 GREEN** (axiom-clean, `#print axioms` = propext/choice/Quot.sound only) as of session 2.
+They cut the problem to `M ≤ 3` ∪ the tied-pair case. Remaining: `ties_only_pairs` (easy), then step 5
+(the gate) and 6–7. Note step 4 lands `M ≤ 3` directly (sharper than the doc's reduction) by using the
+crude `v₂(a₀!) ≤ a₀` rather than `≤ a₀−1`, which sidesteps the `a₀ = 0` edge.
 
 ## Confidence
-- Steps 1–4 (and thus the whole **unique-min** half): ~85%, routine.
+- Steps 1–4 (and thus the whole **unique-min** half): **DONE** (was ~85%).
 - Step 5 crude ceiling ⟹ **Tier-1 finiteness**: ~60% — the carry recursion is elementary but is the
   genuine derivation Lin/Frankl did and never published. **No analytic input expected** (~90% on "no
   hard wall").
