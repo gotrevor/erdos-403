@@ -85,8 +85,9 @@ no tied/untied split.** This is where the real work (item 1) lives.
       `factDigit_factSum_le_one`
 - [x] A4 `0!` bridge — `factSum_digit_dichotomy`, packaged as `not_factSum_of_digits`
 - [~] A5 decidability — subsumed: `not_factSum_of_digits` is the interface (no full `Decidable` needed)
-- [ ] B6 even/odd modular kills
-- [ ] C7 residual middle-digit (the hard kernel)
+- [x] B6 even `m` — **fully killed** (`factSum_ne_of_even`): `2^m ≡ 16 (mod 24)` ⟹ `d_3 = 2` for
+      *both* `2^m` and `2^m − 1`, so `not_factSum_of_digits` fires. (Odd `m` keeps `d_3 = 1`; residual.)
+- [ ] C7 residual: **odd `m ≥ 9`** — a middle digit `≥ 2` (the hard kernel)
 - [ ] D8 sharp assembly
 - [ ] D9 reroute finite, retire `tied_carry_ceiling`
 
