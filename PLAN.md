@@ -254,9 +254,12 @@ lifts to `m = v₂(factSum S)`. Therefore:
 The target `m ≤ M+2` is **exactly**:
 > **(CRUX)** `v₂( oddpart(M!) + oddpart(factSum(S\{M})) ) ≤ s₂(M) + 2`.
 
-This is a clean, self-contained 2-adic statement about the odd parts of `M!` and the lower factorial
-sum — no powers of two left in it, no cascade bookkeeping. It IS Lin's estimate, now pinned to one
-inequality. Two ways to attack: (a) iterate the *generalized* descent (the C-α lemma holds for any `S`
+This is a clean 2-adic statement about the odd parts of `M!` and the lower factorial sum. **Honest
+caveat (verified):** (CRUX) is *false* unconditionally — the unbounded family `{2ᵗ−2,2ᵗ−1,2ᵗ+1}`
+violates it (`v₂=6,8,10,… > s₂+2=4`). So proving it must re-import the recursive power-of-2 structure
+of `factSum(S\{M}) = 2^m − M!`; it is an exact *restatement* of the kernel, cleanly isolated — **not**
+a reduction past the difficulty. (The descent decomposition `m = V₁ + v₂(odd+odd)` itself is
+unconditional and verified — that part is C-α, banked.) Two ways to attack: (a) iterate the *generalized* descent (the C-α lemma holds for any `S`
 with `v₂(factSum S) > v₂(M!)`, not just `2^m` — generalize it, then the valuation chain
 `m > M−s₂M > M₁−s₂M₁ > …` strictly descends to the `{2,3}` bottom; bound the top lift via the chain);
 (b) attack (CRUX) directly via the binary structure of `oddpart(M!)` (Legendre / Kummer on the odd
