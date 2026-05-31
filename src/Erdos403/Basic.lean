@@ -439,8 +439,15 @@ theorem cascade_two {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
             have hne7 : a ≠ 7 := by rintro rfl; exact h7 hmem.1
             omega))
           (by decide))
-    · -- `5 ∈ S` (and `4 ∉ S`): the deep cascade. `{2,3,5} ↦ 2⁷` lives here; the descent recurses
-      -- (`v₂(∑_{a≥6} a!) = 7` is *achievable*, unlike the `=5` the `4`-branch needed). Open.
+    · -- `5 ∈ S` (and `4 ∉ S`): the genuinely unbounded cascade — the irreducible Lin/Frankl kernel.
+      -- `factSum = 128 + ∑_{a≥6} a!`, and the carry `v₂(head_n)` (which must equal `v₂(tail_n)` at
+      -- every split, since `head+tail = 2^m`) threads through the boundaries `v₂(n!)` without ever
+      -- landing in a "gap" `(v₂(n!), v₂((n+2)!))`. Unlike the `4`-branch (where the forced carry `5`
+      -- fell in the gap `(4,7)` and died at mod 64), here the required carry `7` is *achievable*, and
+      -- the threading family `{2,3,5,6,7,11,12,15,16,19,20,…}` keeps it alive arbitrarily far up.
+      -- Verified (Python, `tools/`-style): NO fixed modulus refutes this branch — the `2`-power
+      -- needed to expose the nonzero odd part grows with `M` (`2¹¹` at `M=11`, `2²¹` at `M=20`). So
+      -- this needs a global induction (Lin's unpublished argument), not a bounded mod check. OPEN.
       sorry
 
 /-- **The sharp tied-pair carry ceiling (Step 5).** When the
