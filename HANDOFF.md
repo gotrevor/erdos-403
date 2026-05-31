@@ -1,8 +1,14 @@
 # Erdős #403 — formalization handoff
 
 **Repo**: `~/src/erdos-403/` · **Started**: 2026-05-30 · **mathlib**: v4.29.1 (cache-shared with
-`binomial-thresholds`/`sum-product`, instant `lake exe cache get`). **Build**: green (8250 jobs),
-witness verified, 2 `sorry`s (the two headline theorems).
+`binomial-thresholds`/`sum-product`, instant `lake exe cache get`). **Build**: green (8248 jobs),
+witness verified.
+
+**Session 2 (2026-05-31) — major progress.** Steps 1–4 + ties + finiteness assembly (step 6) all
+landed and axiom-clean. **`erdos_403_finite` is fully proven modulo a single `sorry`,
+`tied_carry_ceiling`** — the bounded-carry kernel. `#print axioms erdos_403_finite` = standard three
++ `sorryAx`. Remaining sorries: `tied_carry_ceiling` (the gate, §5) and `erdos_403_sharp` (§7).
+See `RECONSTRUCTION.md` for the full ordered status + the "`v₂(K)` bounded" next-attack reduction.
 
 ## The problem ([ErGr80, p.79], Burr–Erdős)
 
@@ -54,9 +60,11 @@ enumeration. (Wrinkle: `0!=1!` makes the bottom digit slightly non-standard — 
   `1!+2!+3!+6!`). [See sibling problem #404 — a cheap follow-on once the machinery exists.]
 
 ## Plan / next steps
-1. **Tier 1 first** (closes #403). Build: `factSum_lt_two_mul_factorial` (size sandwich) →
-   `v₂` ceiling in the generic case → reconstruct the bounded-carry lemma → assemble `.Finite`.
-2. **Tier 2** (`m ≤ 7`): the factorial-base digit check over `m ≤ B`.
+1. ✅ **Tier 1 skeleton DONE** — size sandwich, Legendre engine, unique-min half, ties dichotomy,
+   and the `.Finite` assembly are all green/axiom-clean. **Only `tied_carry_ceiling` remains** to
+   close #403. Attack it via the `v₂(K)` reduction in `RECONSTRUCTION.md` (bound `v₂(factSum/a₀!)`
+   absolutely; crude `B` suffices for finiteness). This is the Aristotle-race target.
+2. **Tier 2** (`m ≤ 7`, `erdos_403_sharp`): the factorial-base digit check over `m ≤ B`.
 3. **#404 / `3^m`** as a follow-on (same engine, `p=3`, tiny finite check).
 
 ## Confidence (revised after the gate)
