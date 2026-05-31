@@ -99,7 +99,7 @@ sharp `m ≤ 7` (and the sibling #404 `3^m` result, `m∈{0,1,2,3,6}`, by the sa
 | 2 | ✅ **partial** `padicValNat_two_factorial` (Legendre wrapper) + `_le` + `_mono` DONE. `ties_only_pairs` **TODO** (deferred — needed for step 6, not for 3/4) | B | `sub_one_mul_padicValNat_factorial`, `padicValNat_dvd_iff_le`, `Nat.factorization`-free via dvd |
 | 3 | ✅ **DONE** `v2_factSum_of_unique_min : (∀ a∈S, a≠a₀ → v₂(a₀!) < v₂(a!)) → v₂(factSum S) = v₂(a₀!)` | 2 | split off `a₀!` via `Finset.add_sum_erase`; `2^k ∣`/`2^{k+1}∤` sandwich + `Nat.dvd_add_left` |
 | 4 | ✅ **DONE** `unique_min_bound : unique-min ∧ factSum=2^m → M ≤ 3` | 1,3 | `m = v₂(a₀!) ≤ a₀ ≤ M` ⟹ `M! ≤ 2^M` ⟹ `M ≤ 3` via `two_pow_lt_factorial` |
-| 5 | ⚠️ **THE GATE (sole remaining `sorry`)** `tied_sharp_ceiling : tied-pair ∧ factSum=2^m → m ≤ M+2` | 2,3 | the research kernel, now with **explicit `B = 2`**; `tied_carry_ceiling` (∃B) is *proven* from it |
+| 5 | ✅ **`tied_sharp_ceiling` PROVEN** (reduced to kernel `cascade_two`); ⚠️ **THE GATE (sole `sorry`)** is now `cascade_two : min'=2 ∧ 3∈S ∧ factSum=2^m → m ≤ M+2`, **scoped to `M ≥ 6`** | 2,3 | bottom-pinned to `a₀=2`; `tied_carry_ceiling` (∃B) proven from it |
 | 6 | ✅ **DONE** `erdos_403_finite` (modulo step 5) | 1,4,5,ties | `exists_factorial_gt_two_pow` + sandwich + ceiling ⟹ `S ⊆ (range (N+1)).powerset` ⟹ `Set.Finite` |
 | 7 | ✅ **DONE (modulo step 5)** `erdos_403_sharp (m ≤ 7)` | 5 | no factorial-base / decide needed: unique-min ⟹ `m ≤ 3` (`sharp_of_unique_min`); tied ⟹ `m ≤ M+2` (kernel) + `four_two_pow_lt_factorial` (`2^{M+2}<M!` for `M≥6`) ⟹ `M ≤ 5` ⟹ `m ≤ 7` |
 
@@ -147,6 +147,22 @@ solution we'd missed. `erdos_403_sharp` is therefore `m ≤ 7`, attained.
 ### `min'_le_two` ✅ DONE — reduces the kernel bottom to `a₀ ∈ {0,2}`
 Proven & axiom-clean: `factSum S = 2^m ⟹ min' S ≤ 2` (because `a₀! ∣ 2^m` forces `a₀!` to be a power
 of two). With the tied hypothesis (`a₀` even), the kernel's bottom is now exactly `a₀ ∈ {0, 2}`.
+
+### Bottom-pinning ✅ DONE (session 5) — `tied_sharp_ceiling` proven, kernel is now `cascade_two`
+`tied_sharp_ceiling` (the old `sorry`) is **fully proven** by dispatching `a₀ ∈ {0,2}` down to a
+single bottom-pinned kernel `cascade_two (min'=2 ∧ 3∈S ∧ factSum=2^m → m ≤ M+2)`:
+- **`a₀ = 0 ∧ 2 ∈ S`** dies by parity: `not_eight_dvd_factSum_of_mem_012` (axiom-clean) shows
+  `{0,1,2}⊆S ⟹ factSum ≡ 4` or `2 (mod 8) ≠ 0`, so `8 ∤ factSum` and hence `m ≤ 2`.
+- **`a₀ = 0 ∧ 2 ∉ S`**: the `0!+1! = 2!` twin surgery `{0,1} ↦ {2}` maps `S` to
+  `S' = insert 2 ((S.erase 0).erase 1)`, preserving `factSum` and (as `max' S ≥ 3`) `max'`, landing
+  `min' S' = 2`; then `cascade_two` (if `3∈S'`) or `m_le_max_of_unique_min` (if `3∉S'`, unique-min).
+- **base `max' S ≤ 2`**: `factSum ≤ 0!+1!+2! = 4 ⟹ m ≤ 2`.
+
+Inside `cascade_two`, the `M = max' S ≤ 5` regime falls to the sandwich (`M! < 2^{M+2}` for `M ≤ 5`
+by `decide`), so the **lone `sorry` is scoped to `M ≥ 6`** — the regime where `2^{M+2} < M!` makes
+the sandwich too weak and only the odd-part-`1` constraint tames the carry. This `M ≥ 6` cascade is
+the irreducible Lin/Frankl estimate. `#print axioms` of `erdos_403_finite`/`erdos_403_sharp` = the
+standard three + `sorryAx` (via `cascade_two` only).
 
 ### Why the kernel is genuinely hard (the cascade, traced)
 The earlier "bound `v₂(K)`" framing was **wrong** (`v₂(K) = m − v₂(a₀!) ≈ m`, circular). The real
