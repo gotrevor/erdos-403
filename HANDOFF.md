@@ -1,5 +1,14 @@
 # Erdős #403 — formalization handoff
 
+> **✅ SOLVED 2026-05-31 (commit `aedfc35`). Fully sorry-free.** Both `erdos_403_finite` and
+> `erdos_403_sharp` (`m ≤ 7`) are proven in `Sharp.lean`. The lost Lin/Frankl carry estimate was
+> **never needed** — a fixed modulus `12!` (FNS digits, period 1620) closes it; the prior
+> "no fixed modulus" belief was a heuristic extrapolation error. **Read `SOLVED.md`** for the full
+> story. The carry-route notes below are historical. Only remaining: host `git push` (no egress in
+> the box) + optional stale-comment cleanup in `Basic.lean`.
+
+---
+
 **Repo**: `~/src/erdos-403/` · **Started**: 2026-05-30 · **mathlib**: v4.29.1 (cache-shared with
 `binomial-thresholds`/`sum-product`, instant `lake exe cache get`). **Build**: green (8248 jobs),
 witness verified.
