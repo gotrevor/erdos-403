@@ -302,7 +302,25 @@ and recurses, terminating at `m ≤ max' S + 2` (`{2,3,5} ↦ 2⁷` extremal). -
 theorem cascade_two {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
     (hmin : S.min' h = 2) (hmem3 : 3 ∈ S) (hpow : factSum S = 2 ^ m) :
     m ≤ S.max' h + 2 := by
-  sorry
+  obtain ⟨M, hMdef⟩ : ∃ M, S.max' h = M := ⟨_, rfl⟩
+  rw [hMdef]
+  have h3M : 3 ≤ M := hMdef ▸ S.le_max' 3 hmem3
+  rcases Nat.lt_or_ge M 6 with hM5 | hM6
+  · -- `M ≤ 5`: pure size sandwich. `factSum ≤ 2·M! < 2^{M+3}` (as `M! < 2^{M+2}` for `M ≤ 5`),
+    -- so `2^m < 2^{M+3}`, giving `m ≤ M + 2`. No carry analysis needed below `M = 6`.
+    have hub : factSum S ≤ 2 * M ! := hMdef ▸ factSum_le_two_mul_factorial_max h
+    have hMlt : M ! < 2 ^ (M + 2) := by interval_cases M <;> decide
+    have hlt : 2 ^ m < 2 ^ (M + 3) := by
+      rw [hpow] at hub
+      calc 2 ^ m ≤ 2 * M ! := hub
+        _ < 2 * 2 ^ (M + 2) := by omega
+        _ = 2 ^ (M + 3) := by ring
+    have := (Nat.pow_lt_pow_iff_right (by norm_num : 1 < 2)).mp hlt
+    omega
+  · -- `M ≥ 6`: the genuine, irreducible Lin/Frankl carry cascade. Here the sandwich is too weak
+    -- (`2^{M+2} < M!` for `M ≥ 6`, so it permits `m` up to `~M log M`); only the odd-part-`1`
+    -- constraint `factSum = 2^m` tames the carry, via the `2^{m-3} = 1 + ∑_{a≥4} a!/8` descent.
+    sorry
 
 /-- **The sharp tied-pair carry ceiling (Step 5).** When the
 bottom is a tied pair (`a₀ = min' S` even, `a₀+1 ∈ S`) and `factSum S = 2^m`, the carry from
