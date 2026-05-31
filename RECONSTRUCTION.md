@@ -99,15 +99,32 @@ sharp `m ≤ 7` (and the sibling #404 `3^m` result, `m∈{0,1,2,3,6}`, by the sa
 | 2 | ✅ **partial** `padicValNat_two_factorial` (Legendre wrapper) + `_le` + `_mono` DONE. `ties_only_pairs` **TODO** (deferred — needed for step 6, not for 3/4) | B | `sub_one_mul_padicValNat_factorial`, `padicValNat_dvd_iff_le`, `Nat.factorization`-free via dvd |
 | 3 | ✅ **DONE** `v2_factSum_of_unique_min : (∀ a∈S, a≠a₀ → v₂(a₀!) < v₂(a!)) → v₂(factSum S) = v₂(a₀!)` | 2 | split off `a₀!` via `Finset.add_sum_erase`; `2^k ∣`/`2^{k+1}∤` sandwich + `Nat.dvd_add_left` |
 | 4 | ✅ **DONE** `unique_min_bound : unique-min ∧ factSum=2^m → M ≤ 3` | 1,3 | `m = v₂(a₀!) ≤ a₀ ≤ M` ⟹ `M! ≤ 2^M` ⟹ `M ≤ 3` via `two_pow_lt_factorial` |
-| 5 | ⚠️ **the gate** `tied_carry_ceiling : ∃ B, tied-pair ∧ factSum=2^m → m ≤ M+B` | 2,3 | the research kernel; unique-min half folded into `carry_ceiling` is DONE |
+| 5 | ⚠️ **THE GATE (sole remaining `sorry`)** `tied_sharp_ceiling : tied-pair ∧ factSum=2^m → m ≤ M+2` | 2,3 | the research kernel, now with **explicit `B = 2`**; `tied_carry_ceiling` (∃B) is *proven* from it |
 | 6 | ✅ **DONE** `erdos_403_finite` (modulo step 5) | 1,4,5,ties | `exists_factorial_gt_two_pow` + sandwich + ceiling ⟹ `S ⊆ (range (N+1)).powerset` ⟹ `Set.Finite` |
-| 7 | factorial-base digit criterion + endgame `decide` → `erdos_403_sharp (m ≤ 7)` | 5 | factorial base may need building; small finite check |
+| 7 | ✅ **DONE (modulo step 5)** `erdos_403_sharp (m ≤ 7)` | 5 | no factorial-base / decide needed: unique-min ⟹ `m ≤ 3` (`sharp_of_unique_min`); tied ⟹ `m ≤ M+2` (kernel) + `four_two_pow_lt_factorial` (`2^{M+2}<M!` for `M≥6`) ⟹ `M ≤ 5` ⟹ `m ≤ 7` |
 
-**Steps 1–4 + ties + step 6 GREEN** (axiom-clean) as of session 2. **`erdos_403_finite` is fully
-assembled and depends on exactly one `sorry`: `tied_carry_ceiling`** (`#print axioms` = the standard
-three + `sorryAx`). `unique_min_bound` and the whole unique-min half are axiom-clean. Step 4 lands
-`M ≤ 3` directly (sharper than the doc) via `v₂(a₀!) ≤ a₀`, sidestepping the `a₀ = 0` edge. The strict
-upper sandwich `< 2·M!` was corrected to non-strict `≤ 2·M!` (false at `M∈{1,2}`, e.g. `{0,1}↦2`).
+**Steps 1–4 + ties + step 6 GREEN** (axiom-clean) as of session 2; **steps 5→single-kernel + step 7
+DONE as of session 4.** Both headline theorems `erdos_403_finite` *and* `erdos_403_sharp` now reduce
+to **exactly one `sorry`: `tied_sharp_ceiling`** (`#print axioms` of both = the standard three +
+`sorryAx`). `unique_min_bound` and the whole unique-min half are axiom-clean. Step 4 lands `M ≤ 3`
+directly (sharper than the doc) via `v₂(a₀!) ≤ a₀`, sidestepping the `a₀ = 0` edge. The strict upper
+sandwich `< 2·M!` was corrected to non-strict `≤ 2·M!` (false at `M∈{1,2}`, e.g. `{0,1}↦2`).
+
+**Session-4 restructure (sorries 2 → 1):** the old free-`B` `tied_carry_ceiling` sorry + the
+independent `erdos_403_sharp` sorry were unified. `tied_sharp_ceiling` (tied bottom + `factSum=2^m`
+⟹ `m ≤ M+2`, explicit `B=2`) is now the *single* kernel; `tied_carry_ceiling` is proven from it
+(witness `2`), and `erdos_403_sharp` is proven from it (tied case) plus `sharp_of_unique_min` (the
+unique-min case is unconditional, `m ≤ 3`). The sharp endgame needs **no** factorial-base layer or
+`decide` — just the size sandwich `four_two_pow_lt_factorial`. So a proof of the one kernel makes
+**both** Erdős #403 (finiteness) and its sharp form `m ≤ 7` unconditional and axiom-clean.
+
+**Session-4 finding — `B=2` is sharp and the constraint is essential.** Exhaustive search: every
+power-of-two factorial sum has `m − max'S ≤ 2` (extremal `{2,3,5}↦2⁷`). But the *general* gap
+`v₂(factSum S) − max'S` is **unbounded** — `{2ᵗ−2, 2ᵗ−1, 2ᵗ+1}` gives gap `2t−2` (e.g. `{6,7,9}↦2¹³·45`,
+gap 4; `{14,15,17}`, gap 6) — so no constant `B` works without `factSum = 2^m`. The carry jump is
+governed by *odd-part ratios* of factorials (`oddpart(9!)/oddpart(6!·7!) = 2835/45 = 63 = 2⁶−1`,
+giving the +6 jump). This is exactly why it's Lin's hard estimate, and confirms the odd-part-`1`
+hypothesis is load-bearing, not cosmetic.
 
 ### The actual solution set (enumerated, session 2)
 Brute force over indices `0..12` (`tools/`-style check): the **only** solutions are

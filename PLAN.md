@@ -114,8 +114,16 @@ Two regimes (by the leading digit `d_M = ⌊2^m/M!⌋`, `M` = largest factorial 
 - [x] C7a leading-digit kill — `factSum_ne_of_leading_two` (Sharp.lean): odd `m` with
       `2·M! < 2^m < (M+1)!` dies (both top digits `≥ 2`). Axiom-clean. **Banked (session 4).**
 - [ ] C7b residual nut: **odd `m ≥ 9` with `2^m ∈ [M!, 2M!)`** — a *middle* digit `≥ 2` (the hard kernel)
-- [ ] D8 sharp assembly
-- [ ] D9 reroute finite, retire `tied_carry_ceiling`
+- [x] D8 sharp assembly — `erdos_403_sharp` (`m ≤ 7`) **proven modulo the kernel** (session 4), via
+      `sharp_of_unique_min` (`m≤3`) + `tied_sharp_ceiling` + `four_two_pow_lt_factorial`. No
+      factorial-base/`decide` needed.
+- [x] D9 unify kernels — `erdos_403_finite` **and** `erdos_403_sharp` now both reduce to the **single**
+      `tied_sharp_ceiling` sorry (`B=2` explicit). `tied_carry_ceiling` proven from it. **Sorries 2→1.**
+
+**Note (session 4):** the Basic.lean *valuation* track (above) is the one carrying finiteness + sharp
+(1 sorry). The Sharp.lean *FNS* track (even-`m` kill, C-7a) is a parallel alternative whose residual
+C-7b is the *same* kernel (`tied_sharp_ceiling`); keep C-7a as a clean standalone but the live target
+is the single kernel.
 
 **Phase A done (session 3), all axiom-clean.** The endgame now only needs, for each `m ≥ 8`, a
 positive-index factorial digit `≥ 2` in *both* `2^m` and `2^m − 1` (→ `not_factSum_of_digits`).
