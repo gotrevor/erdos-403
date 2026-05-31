@@ -440,7 +440,49 @@ theorem four_two_pow_lt_factorial {M : ℕ} (hM : 6 ≤ M) : 2 ^ (M + 2) < M ! :
         _ ≤ (k + 1) * k ! := Nat.mul_le_mul_right _ (by omega)
         _ = (k + 1)! := (Nat.factorial_succ k).symm
 
-/-- **The cascade kernel — the sole remaining `sorry`, now bottom-pinned to `a₀ = 2`.** With the
+/-- **CRUX — the sole remaining `sorry`, now an isolated 2-adic inequality.** For a tied-bottom
+power-of-two solution (`min' S = 2`, `3 ∈ S`, `factSum S = 2^m`), the *lift of the odd parts* is at
+most `s₂(M) + 2` (`M = max' S`). Via `m_eq_top_val_add_lift` (descent ∘ lift,
+`m = v₂(M!) + lift`) and `v₂(M!) = M − s₂ M`, this is **exactly equivalent** to the carry ceiling
+`m ≤ M + 2` — the unpublished Lin/Frankl estimate, cleanly isolated as one statement about the odd
+parts of `M!` and the lower factorial sum. NOTE it is *false* without the power-of-two hypothesis
+(`{2ᵗ−2,2ᵗ−1,2ᵗ+1}` makes the lift `→ ∞`), so any proof must use the recursive structure of
+`factSum(S\{M}) = 2^m − M!`. First foothold proven below: `min' S = 2` forces `m` odd (mod-6
+even-kill). The remaining odd-`m` argument is the research kernel — see `LITERATURE-REQUEST.md`. -/
+theorem cascade_crux {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
+    (hmin : S.min' h = 2) (hmem3 : 3 ∈ S) (hpow : factSum S = 2 ^ m) :
+    padicValNat 2
+        ((S.max' h)! / 2 ^ padicValNat 2 ((S.max' h)!)
+          + factSum (S.erase (S.max' h)) / 2 ^ padicValNat 2 ((S.max' h)!))
+      ≤ s₂ (S.max' h) + 2 := by
+  -- Foothold (proven): `min' S = 2` ⟹ every index ≥ 2, so only `2! = 2` survives mod `6 = 3!`:
+  -- `factSum S ≡ 2 (mod 6)`, hence `2^m ≡ 2 (mod 6)`, forcing `m` odd (even `m` gives `2^m ≡ 4`).
+  have h2mem : (2 : ℕ) ∈ S := hmin ▸ S.min'_mem h
+  have hall : ∀ a ∈ S, 2 ≤ a := fun a ha => hmin ▸ S.min'_le a ha
+  have hmod6 : factSum S % 6 = 2 := by
+    have hdvd6 : (6 : ℕ) ∣ ∑ a ∈ S.erase 2, a ! :=
+      Finset.dvd_sum fun a ha => by
+        rw [Finset.mem_erase] at ha
+        exact six_dvd_factorial (by have := hall a ha.2; omega)
+    have hsplit : factSum S = 2 ! + ∑ a ∈ S.erase 2, a ! := by
+      rw [factSum]; exact (Finset.add_sum_erase S _ h2mem).symm
+    obtain ⟨c, hc⟩ := hdvd6
+    rw [hsplit, hc, Nat.factorial_two]; omega
+  have hodd : Odd m := by
+    rw [hpow] at hmod6
+    by_contra hne
+    rw [Nat.not_odd_iff_even] at hne
+    obtain ⟨j, hj⟩ := hne
+    rcases Nat.eq_zero_or_pos j with rfl | hp
+    · simp only [hj] at hmod6; norm_num at hmod6
+    · have h4 : (2 : ℕ) ^ m % 6 = 4 := by
+        rw [hj, ← two_mul, pow_mul]; norm_num [four_pow_mod_six j hp]
+      omega
+  -- The odd-`m` carry argument (OPEN). See RECONSTRUCTION.md / LITERATURE-REQUEST.md.
+  sorry
+
+/-- **The cascade kernel — bottom-pinned to `a₀ = 2`, now sorry-free (reduced to `cascade_crux`).**
+With the
 bottom *exactly* the tied pair `{2,3}` (`min' S = 2`, `3 ∈ S`) and `factSum S = 2^m`, the carry
 cascades to `m ≤ max' S + 2`. `tied_sharp_ceiling` reduces its whole `Even (min' S)` hypothesis to
 this one statement: `min'_le_two` pins `a₀ ∈ {0,2}`, the `a₀ = 0 ∧ 2 ∈ S` case dies by
@@ -560,33 +602,18 @@ theorem cascade_two {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
       -- not divisible by `6 = 3!` is the lone `2! = 2`, giving `factSum S ≡ 2 (mod 6)`. With
       -- `factSum S = 2^m`, this forces `2^m ≡ 2 (mod 6)`, i.e. `m` odd (even `m` gives `2^m ≡ 4`).
       -- So the even-`m` half of this branch dies outright; the residue lives entirely in odd `m`.
-      have h2mem : (2 : ℕ) ∈ S := h2
-      have hmod6 : factSum S % 6 = 2 := by
-        have hdvd6 : (6 : ℕ) ∣ ∑ a ∈ S.erase 2, a ! :=
-          Finset.dvd_sum fun a ha => by
-            rw [Finset.mem_erase] at ha
-            exact six_dvd_factorial (by have := hall a ha.2; omega)
-        have hsplit : factSum S = 2 ! + ∑ a ∈ S.erase 2, a ! := by
-          rw [factSum]; exact (Finset.add_sum_erase S _ h2mem).symm
-        obtain ⟨k, hk⟩ := hdvd6
-        rw [hsplit, hk, Nat.factorial_two]; omega
-      have hodd : Odd m := by
-        by_contra hne
-        rw [Nat.not_odd_iff_even] at hne
-        obtain ⟨j, hj⟩ := hne
-        have hj1 : 1 ≤ j := by omega
-        have h4 : (2 : ℕ) ^ m % 6 = 4 := by
-          rw [hj, ← two_mul, pow_mul]; norm_num [four_pow_mod_six j hj1]
-        rw [hpow] at hmod6; omega
-      -- **The odd-`m` kernel (OPEN).** `factSum = 128 + ∑_{a≥6} a!`, and the carry `v₂(head_n)`
-      -- (forced equal to `v₂(tail_n)` at every split, since `head + tail = 2^m`) threads through the
-      -- boundaries `v₂(n!)` without ever landing in a "gap" `(v₂(n!), v₂((n+2)!))`. Unlike the
-      -- `4`-branch (forced carry `5` fell in the gap `(4,7)`, died at mod 64), here the required carry
-      -- `7` is *achievable*, and the threading family `{2,3,5,6,7,11,12,15,16,19,20,…}` keeps it alive
-      -- arbitrarily far. Verified (Python): NO fixed modulus refutes it — the `2`-power needed to
-      -- expose the nonzero odd part grows with `M` (`2¹¹` at `M=11`, `2²¹` at `M=20`). Needs a global
-      -- induction (Lin's unpublished argument), now with `hodd : Odd m` in scope to build on.
-      sorry
+      -- Discharge via the isolated kernel `cascade_crux` (the odd-part inequality) composed with the
+      -- descent ∘ lift decomposition `m = v₂(M!) + lift`. With `v₂(M!) = M − s₂ M` and the CRUX bound
+      -- `lift ≤ s₂ M + 2`, we get `m ≤ M + 2`, contradicting `m ≥ M + 3`. (The `4,5` membership facts
+      -- aren't even needed here — `cascade_crux` only consumes `min' = 2 ∧ 3 ∈ S ∧ factSum = 2^m`.)
+      have hlt : padicValNat 2 ((S.max' h)!) < m := by
+        rw [padicValNat_two_factorial]; omega
+      have heq := m_eq_top_val_add_lift h hpow hlt
+      have hcrux := cascade_crux h hmin hmem3 hpow
+      have hleg : padicValNat 2 ((S.max' h)!) = S.max' h - s₂ (S.max' h) :=
+        padicValNat_two_factorial _
+      have hs2le : s₂ (S.max' h) ≤ S.max' h := Nat.digit_sum_le 2 (S.max' h)
+      omega
 
 /-- **The sharp tied-pair carry ceiling (Step 5).** When the
 bottom is a tied pair (`a₀ = min' S` even, `a₀+1 ∈ S`) and `factSum S = 2^m`, the carry from
