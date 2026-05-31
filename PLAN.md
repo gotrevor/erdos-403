@@ -159,35 +159,93 @@ one-lemma proof found. **Recommendation:** discharge `tied_carry_ceiling` direct
 finiteness-modulo-Lin + sharp-modulo-Lin as the honest deliverable. The FNS kills remain valuable:
 they narrow `tied_carry_ceiling`'s residual scope to "tied ∧ lower-half-odd."
 
-## The kernel, in its cleanest form (session-4 quantitative)
+## The kernel, in its cleanest form (session-4 quantitative) — ⚠️ PARTLY REFUTED (session 6)
 
-The whole problem reduces to **one absolute-constant carry bound**:
+The whole problem reduces to **one carry bound**:
 > **`carry_gap`**: `∃ B, ∀ S nonempty, v₂(factSum S) ≤ max' S + B`.
 
 This *immediately* gives `carry_ceiling` (`factSum S = 2^m ⟹ m = v₂(2^m) = v₂(factSum S) ≤ max'S+B`)
 — no tied/unique-min split, no powers of two. So `carry_gap` ⟹ `erdos_403_finite`.
 
-**Quantitative evidence** (exhaustive over tied-bottom `S ⊆ {0..K}`):
-- general gap `v₂(factSum S) − max'S`: **plateaus at 4** for `K = 9..16` (extremal `{6,7,9}`:
-  `6!+7!+9! = 2¹³·45`, `max=9`). So `carry_gap` holds with **`B = 4`** (conjectured absolute).
-- restricted to *power-of-two* factSums: gap **≤ 2** (only `m ∈ {0,1,2,3,5,7}`; extremal `{2,3,5}→2⁷`,
-  `max=5`). With `min'_le_two`, those have bottom pinned to `{2,3}` (or `{0,1}` twin).
+> ### ⚠️ Session-6 refutation: the UNCONDITIONAL `carry_gap` is FALSE.
+> The session-4 "plateaus at 4, `B = 4` absolute" claim was a **small-`K` artifact**. The
+> *unconditional* gap `v₂(factSum S) − max' S` is **UNBOUNDED**: the family `{2ᵗ−2, 2ᵗ−1, 2ᵗ+1}`
+> gives gap `2t − 2` (verified: `t=3 {6,7,9}` gap 4, `t=4 {14,15,17}` gap 6, …, `t=8 {254,255,257}`
+> gap 14). The brute force only *looked* flat because those witnesses have `max ≈ 2ᵗ`, off-screen for
+> `K ≤ 12`. **Consequence:** the **power-of-two (odd-part-`1`) hypothesis is ESSENTIAL** — the gap is
+> `≤ 2` *only* when `factSum S = 2^m` (the unbounded family has odd part ≠ 1). So:
+> - The kernel CANNOT be the clean unconditional `carry_gap`. It must carry the `factSum = 2^m`
+>   hypothesis (i.e. `cascade_two`'s exact shape). RECONSTRUCTION.md was correct all along.
+> - The session-4 **Aristotle suggestion is void** for the unconditional version; any handoff must be
+>   the *conditional* statement (odd-part-1 in the hypotheses), which is the harder, genuinely-Lin one.
 
-**Why `B` is bounded — the skipped-level mechanism (the proof intuition):** `v₂(i!)` takes each value
-on a pair `{2j,2j+1}` and *skips* values between pairs (`…,8,8,10,10,11,11,15,15,…` — no `9`, no
-`12,13,14`). A bottom pair carries up to a level; it can carry *again* only if that level already
-holds a factorial; but most levels are skipped, so the chain stalls fast. This is the heart of the
-unpublished Lin/Frankl estimate.
+**Why power-of-2 is the lever (the skipped-level mechanism, corrected):** `v₂(i!)` takes each value on
+a pair `{2j,2j+1}` and *skips* between pairs (`…,8,8,10,10,11,11,15,15,…` — no `9,12,13,14`). A bottom
+pair carries up only if the next occupied level already holds a factorial; but the *unbounded* family
+shows occupied levels alone don't stall the chain — what stalls it is that the **odd part must be
+exactly 1**, which the high triple `{2ᵗ−2,2ᵗ−1,2ᵗ+1}` violates. This is the heart of Lin's estimate.
 
-**Why there's no cheap proof:** the only free bound is `v₂(factSum S) ≤ log₂(factSum S) ≈ M log M`
-(the sandwich gives `factSum S < 2·M!`), which is *far* above `M + B`. Closing the gap to an absolute
-constant genuinely needs the cascade analysis above — confirmed by independently re-deriving the
-valuation framework (session 4) and the prior sessions' `Basic.lean`. **Recommended attack:** prove
-`carry_gap` by tracking the carry level-by-level using the pair structure (`v2_factorial_*` lemmas in
-`Basic.lean`), exploiting that occupied levels are sparse. Multi-session; a clean target for an
-automated prover (Aristotle) since it's pure `ℕ` number theory with no powers of two.
+## Confidence (updated session 6)
+A: done. B: even-`m` done (now also as the in-`Basic` mod-6 reduction). C: ~45% (the real Lin kernel,
+now scoped to **tied ∧ M≥6 ∧ odd `m`**, with the unconditional shortcut refuted). D: ~90% once C lands.
+Net "fully sorry-free #403": ~40%; every phase independently valuable and verifiable.
 
-## Confidence
-A: ~85% (standard, just laborious). B: ~80% (modular, but FNS-digit-of-`2^m` lemmas need care).
-C: ~50% (the real Lin kernel, now better-scoped). D: ~90% once A–C land.
-Net "fully sorry-free #403": ~45%, but every phase is independently valuable and verifiable.
+---
+
+# 📋 Session-6 forward plan — the odd-`m` kernel (current)
+
+**Where we are.** `erdos_403_finite`/`_sharp` reduce to ONE `sorry`: `cascade_two`, branch
+`min'=2 ∧ 3∈S ∧ 5∈S ∧ 4∉S ∧ M≥6`, and (session 6) **now also `Odd m`** — the even half is closed in
+`Basic.lean` by a mod-6 argument (`factSum ≡ 2 mod 6 ⟹ 2^m ≡ 2 mod 6 ⟹ m odd`; helpers
+`six_dvd_factorial`, `four_pow_mod_six`, axiom-clean). Goal of the branch: derive `False` (since
+`m ≥ M+3` there, `m ≤ M+2` is vacuous).
+
+**Two settled negatives (don't re-attempt — both verified this session):**
+1. **No fixed modulus / finite digit-set closes odd `m`.** First FNS digit `≥2` wanders, index grows
+   `~log m/log log m` (reaches 11 at `m=223`). Mod-bashing provably cannot finish. (Confirms handoff.)
+2. **Size alone cannot finish.** The tight window `[M!, ∑_{a≤M}a!]` (mult-width `1+1/M`) kills most
+   `M`, but a sparse infinite set survives (`M=63,64,90,161,255,256,…`, where `log₂ M!` is just above
+   an integer). Those survivors have candidate `m ≈ 290 ≫ M+2`, so only the valuation bound `m≤M+2`
+   kills them. ⟹ the valuation/carry argument is irreducible; no size shortcut.
+
+**The one viable line: the conditional carry cascade (Lin), in `Basic.lean`.**
+Target lemma (the whole kernel):
+> `cascade_pow2`: `factSum S = 2^m ∧ min' S = 2 ∧ 3 ∈ S ⟹ m ≤ max' S + 2`.
+
+Mechanism to formalize (the bottom-up parity cascade, odd-part-1 essential):
+`2^m = 2!+3!+∑_{a≥4∈S}a! = 8 + ∑_{a≥4}a!` ⟹ `∑_{a≥4}a!/8 = 2^{m-3}−1` (odd). `a!/8` is odd iff
+`a∈{4,5}` ⟹ parity pins exactly one of `{4,5}` in `S`, then recurse one level up with the target
+valuation bumped. **Invariant to prove:** the carry can chain up to level `ℓ` only by occupying a
+*pair* `{2j,2j+1}`, and the residual-odd constraint forces termination by `m ≤ M+2`.
+
+### Staged milestones (each independently committable, build-green)
+- **C-α (1 session): the `÷8` reduction lemma.** Formalize `factSum S = 8 + ∑_{a≥4∈S}a!` and
+  `∑_{a≥4∈S} a!/8 = 2^{m-3} − 1` as a clean rewrite (needs `8 ∣ a!` for `a≥4`, have
+  `eight_dvd_factorial`; and `8 ∤ (2!+3!)`-style accounting). Output: a `cascade_step` lemma turning
+  the goal into "the reduced sum is `2^{m-3}−1`, odd."
+- **C-β (1–2 sessions): the parity-pins-a-pair step.** Prove: given the reduced odd target, the next
+  occupied indices are forced to be a consecutive pair `{2j,2j+1}` (or none), via `v₂(a!/8)` parity.
+  This is the inductive step. Key sub-lemma: `v₂(a!)` is constant on `{2j,2j+1}` and strictly jumps
+  across — already partly in `Basic.lean` (`v2_factorial_*`); `rg` them first (`read-repo-before-rederiving`).
+- **C-γ (2–3 sessions, the nut): termination ⟹ `m ≤ M+2`.** Strong induction on `M − (current level)`:
+  the cascade strips pairs upward; at the top pair (containing `M`) the residual-odd-`1` constraint
+  has no room to carry further, capping the gap at 2. This is the genuinely-Lin step; budget 2–3
+  sessions and expect dead ends. Fallback if stuck: prove the *weaker* `m ≤ M + C` for some explicit
+  larger `C` (still gives finiteness via `exists_factorial_gt_two_pow`; sacrifices only sharp `m≤7`).
+- **C-δ (assembly): wire `cascade_pow2` into `cascade_two`**, delete the `sorry`. `#print axioms`
+  must drop `sorryAx`. Then `erdos_403_finite`/`_sharp` are unconditional.
+
+### Alternative vehicle (parallel, lower priority): FNS doubling transducer
+`2^m→2^{m+1}` is a carry transducer on factorial-base digits (`dᵢ' = (2dᵢ+c)mod(i+1)`, carry∈{0,1}).
+Prove: all-digits-≤1 cannot recur for odd `m≥9`. Cleaner statement, but the growing radix `(i+1)`
+makes the invariant harder to pin than the cascade; keep as a backup framing, not the lead.
+
+### Aristotle (only if Trevor green-lights — currently a "no")
+The *conditional* `cascade_pow2` (pure `ℕ`, with `factSum=2^m` in the hypotheses) is a well-posed,
+isolated target once C-α/C-β land. NOT the unconditional `carry_gap` (refuted). Trevor's call.
+
+### Sequencing & checkpoints
+1. C-α next session (low-risk, banks a clean rewrite). 2. C-β (the pair-pinning induction). 3. C-γ
+the nut. Checkpoint after C-β: if the pair-pinning induction is clean, confidence on C-γ rises; if it
+fights `v₂` bookkeeping, consider the `m ≤ M+C` weaker fallback to at least close *finiteness*
+unconditionally and leave only *sharp* `m≤7` open.
