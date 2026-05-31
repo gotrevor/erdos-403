@@ -244,6 +244,25 @@ makes the invariant harder to pin than the cascade; keep as a backup framing, no
 The *conditional* `cascade_pow2` (pure `ℕ`, with `factSum=2^m` in the hypotheses) is a well-posed,
 isolated target once C-α/C-β land. NOT the unconditional `carry_gap` (refuted). Trevor's call.
 
+### 🎯 Crux localized (session 6, post-C-α) — the single isolated nut
+C-α (`v2_factSum_erase_max`, committed, axiom-clean) gives the descent: with `factSum S = 2^m`,
+`v₂(M!) < m`, stripping `M` leaves `v₂(factSum(S\{M})) = v₂(M!) = M − s₂ M`. So `M!` **and**
+`factSum(S\{M})` share valuation `V₁ := M − s₂ M`; adding them (two equal-valuation terms) cancels and
+lifts to `m = v₂(factSum S)`. Therefore:
+> `m = V₁ + v₂( oddpart(M!) + oddpart(factSum(S\{M})) )`,  where `oddpart(x) = x / 2^{v₂ x}` (both odd).
+
+The target `m ≤ M+2` is **exactly**:
+> **(CRUX)** `v₂( oddpart(M!) + oddpart(factSum(S\{M})) ) ≤ s₂(M) + 2`.
+
+This is a clean, self-contained 2-adic statement about the odd parts of `M!` and the lower factorial
+sum — no powers of two left in it, no cascade bookkeeping. It IS Lin's estimate, now pinned to one
+inequality. Two ways to attack: (a) iterate the *generalized* descent (the C-α lemma holds for any `S`
+with `v₂(factSum S) > v₂(M!)`, not just `2^m` — generalize it, then the valuation chain
+`m > M−s₂M > M₁−s₂M₁ > …` strictly descends to the `{2,3}` bottom; bound the top lift via the chain);
+(b) attack (CRUX) directly via the binary structure of `oddpart(M!)` (Legendre / Kummer on the odd
+part). **This is the genuine research kernel and the cleanest possible Aristotle target** (pure ℕ,
+one inequality) if Trevor green-lights it. Next session: generalize C-α (low-risk), then attack (CRUX).
+
 ### Sequencing & checkpoints
 1. C-α next session (low-risk, banks a clean rewrite). 2. C-β (the pair-pinning induction). 3. C-γ
 the nut. Checkpoint after C-β: if the pair-pinning induction is clean, confidence on C-γ rises; if it
