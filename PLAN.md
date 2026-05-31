@@ -77,6 +77,26 @@ Two regimes (by the leading digit `d_M = ⌊2^m/M!⌋`, `M` = largest factorial 
     residual `2^k − const` shape; (b) bound consecutive tied levels via the exact-value constraint;
     (c) a size+digit argument special to the leading-digit-1 regime.
 
+    **Session-4 brute-force recon (`m = 9..63`, trust it):** lower-half odd cases are sparse
+    (`m = 13,19,29,33,37,41,…`). Two hard facts that reshape the attack:
+    - **No fixed witness digit.** The index of the first `d_i ≥ 2` wanders with `m`
+      ({5,6} at 13, {8} at 19, {7,8,9,10} at 29, {5,8,10,11,12} at 33). `d_{M-1} ≥ 2` *fails*
+      (m=29). So the even-`m` trick (a periodic modular digit) **cannot** work here — 7b must be a
+      *counting / valuation contradiction*: assume **all** digits `≤ 1` and derive `2^m` is
+      unrepresentable, not "exhibit digit `i`".
+    - **`2^m` and `2^m−1` agree on all digits at index `≥ 5`.** (The `−1` borrow only churns the
+      bottom — `2^m` is even, trailing FNS zeros absorb the borrow below index 5.) ⟹ once a middle
+      digit `≥ 2` is shown for `2^m`, the *same index* serves `2^m−1`, modulo a small
+      "borrow-doesn't-reach-index-`i`" lemma. **Halves `not_factSum_of_digits`'s two obligations.**
+    - **Why it's genuinely Lin (the cancellation trap):** the *small* solutions live on even-`K`
+      2-adic cancellation — `2^5 = 2!+3!+4!` has `v₂(2!) = v₂(3!) = 1`, an even tie that *lifts*
+      `v₂` of the partial sum (`2!+3! = 8`). So the naive "smallest index `i₀ ∈ S` ⟹
+      `v₂(sum) = v₂(i₀!) ≈ i₀ < m`, contradiction" argument **breaks** exactly when the minimal
+      `v₂(i!)` level has an even number of occupants. A real 7b proof must bound how much cancellation
+      the all-digits-≤1 constraint permits (`v₂(i!) = v₂((i-1)!)` iff `i` even — tie structure is
+      explicit). This is the kernel; ~50%, multi-session. Lead approach: track the minimal-`v₂`
+      level and its parity under the digit constraint, not strong induction on `2^k − const`.
+
 ### Phase D — assembly
 8. `erdos_403_sharp`: combine B + C to get a bound, then `decide` the finitely many `m ≤ B` ⇒ `m ≤ 7`.
 9. Re-route `erdos_403_finite` through `erdos_403_sharp` (drop the `tied_carry_ceiling` dependency):
@@ -91,7 +111,9 @@ Two regimes (by the leading digit `d_M = ⌊2^m/M!⌋`, `M` = largest factorial 
 - [~] A5 decidability — subsumed: `not_factSum_of_digits` is the interface (no full `Decidable` needed)
 - [x] B6 even `m` — **fully killed** (`factSum_ne_of_even`): `2^m ≡ 16 (mod 24)` ⟹ `d_3 = 2` for
       *both* `2^m` and `2^m − 1`, so `not_factSum_of_digits` fires. (Odd `m` keeps `d_3 = 1`; residual.)
-- [ ] C7 residual: **odd `m ≥ 9`** — a middle digit `≥ 2` (the hard kernel)
+- [x] C7a leading-digit kill — `factSum_ne_of_leading_two` (Sharp.lean): odd `m` with
+      `2·M! < 2^m < (M+1)!` dies (both top digits `≥ 2`). Axiom-clean. **Banked (session 4).**
+- [ ] C7b residual nut: **odd `m ≥ 9` with `2^m ∈ [M!, 2M!)`** — a *middle* digit `≥ 2` (the hard kernel)
 - [ ] D8 sharp assembly
 - [ ] D9 reroute finite, retire `tied_carry_ceiling`
 
