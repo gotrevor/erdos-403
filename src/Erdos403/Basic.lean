@@ -259,6 +259,27 @@ the **tied-pair** case, where a bottom pair `{a₀, a₀+1}` carries. The claim 
 theorem eight_dvd_factorial {a : ℕ} (ha : 4 ≤ a) : (8 : ℕ) ∣ a ! :=
   (by decide : (8 : ℕ) ∣ 4 !).trans (Nat.factorial_dvd_factorial ha)
 
+/-- `16 ∣ a!` for `a ≥ 6` (since `16 ∣ 6! = 720` and `6! ∣ a!`). -/
+theorem sixteen_dvd_factorial {a : ℕ} (ha : 6 ≤ a) : (16 : ℕ) ∣ a ! :=
+  (by decide : (16 : ℕ) ∣ 6 !).trans (Nat.factorial_dvd_factorial ha)
+
+/-- `64 ∣ a!` for `a ≥ 8` (since `64 ∣ 8! = 40320` and `8! ∣ a!`). -/
+theorem sixtyfour_dvd_factorial {a : ℕ} (ha : 8 ≤ a) : (64 : ℕ) ∣ a ! :=
+  (by decide : (64 : ℕ) ∣ 8 !).trans (Nat.factorial_dvd_factorial ha)
+
+/-- **Low-part residue tool.** If a `low` subset of `S` has every `S \ low` term divisible by `k`,
+then `factSum S` is divisible by `k` iff the (constant) `∑ low` is — so a `¬ k ∣ ∑ low` check
+refutes `k ∣ factSum S`. This is the workhorse for the bottom mod-`2ᵏ` parity steps of the cascade:
+factorial terms above a threshold vanish mod `2ᵏ`, leaving a finite low residue to evaluate. -/
+theorem not_pow2_dvd_factSum (S low : Finset ℕ) (k : ℕ)
+    (hsub : low ⊆ S) (hhigh : ∀ a ∈ S \ low, k ∣ a !)
+    (hlowsum : ¬ k ∣ (∑ a ∈ low, a !)) : ¬ k ∣ factSum S := by
+  intro hdvd
+  have hsplit : factSum S = (∑ a ∈ S \ low, a !) + ∑ a ∈ low, a ! := (Finset.sum_sdiff hsub).symm
+  have hrest : k ∣ ∑ a ∈ S \ low, a ! := Finset.dvd_sum hhigh
+  rw [hsplit] at hdvd
+  exact hlowsum ((Nat.dvd_add_right hrest).mp hdvd)
+
 /-- **The `a₀ = 0`-with-`2` case dies by parity mod 8.** If `{0,1,2} ⊆ S` then `factSum S ≢ 0
 (mod 8)`: the bottom three contribute `0!+1!+2! = 4`, an optional `3!` adds `6`, and every `a ≥ 4`
 term is `≡ 0`. So `factSum S ≡ 4` or `2 (mod 8)`, never `0`; hence no such sum is `2^m` with
@@ -290,6 +311,20 @@ theorem not_eight_dvd_factSum_of_mem_012 {S : Finset ℕ}
     have hval : (∑ a ∈ ({0, 1, 2} : Finset ℕ), a !) = 4 := by decide
     intro hdvd; rw [hsplit, hval] at hdvd; omega
 
+/-- Size helper: `2^(M+2) < M!` for `M ≥ 6` (so the sandwich `M! ≤ 2^m ≤ 2^{M+2}` forces `M ≤ 5`). -/
+theorem four_two_pow_lt_factorial {M : ℕ} (hM : 6 ≤ M) : 2 ^ (M + 2) < M ! := by
+  induction M with
+  | zero => omega
+  | succ k ih =>
+    rcases Nat.lt_or_ge k 6 with hk | hk
+    · have : k = 5 := by omega
+      subst this; decide
+    · have hrec : 2 ^ (k + 2) < k ! := ih hk
+      calc 2 ^ (k + 1 + 2) = 2 * 2 ^ (k + 2) := by ring
+        _ < 2 * k ! := by omega
+        _ ≤ (k + 1) * k ! := Nat.mul_le_mul_right _ (by omega)
+        _ = (k + 1)! := (Nat.factorial_succ k).symm
+
 /-- **The cascade kernel — the sole remaining `sorry`, now bottom-pinned to `a₀ = 2`.** With the
 bottom *exactly* the tied pair `{2,3}` (`min' S = 2`, `3 ∈ S`) and `factSum S = 2^m`, the carry
 cascades to `m ≤ max' S + 2`. `tied_sharp_ceiling` reduces its whole `Even (min' S)` hypothesis to
@@ -317,10 +352,96 @@ theorem cascade_two {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
         _ = 2 ^ (M + 3) := by ring
     have := (Nat.pow_lt_pow_iff_right (by norm_num : 1 < 2)).mp hlt
     omega
-  · -- `M ≥ 6`: the genuine, irreducible Lin/Frankl carry cascade. Here the sandwich is too weak
-    -- (`2^{M+2} < M!` for `M ≥ 6`, so it permits `m` up to `~M log M`); only the odd-part-`1`
-    -- constraint `factSum = 2^m` tames the carry, via the `2^{m-3} = 1 + ∑_{a≥4} a!/8` descent.
-    sorry
+  · -- `M ≥ 6`: here the sandwich forces `m ≥ M + 3` (since `2^{M+2} < M!`), so `m ≤ M+2` can only
+    -- hold *vacuously* — i.e. we must derive `False`. The Lin/Frankl carry cascade. We get a long way
+    -- by parity: exactly one of `{4,5} ∈ S`, and the `4 ∈ S` branch dies outright (mod 64).
+    exfalso
+    have h3 : (3 : ℕ) ∈ S := hmem3
+    have h2 : (2 : ℕ) ∈ S := hmin ▸ S.min'_mem h
+    have hall : ∀ a ∈ S, 2 ≤ a := fun a ha => hmin ▸ S.min'_le a ha
+    -- Sandwich: `M! ≤ 2^m` and `2^{M+2} < M!` give `m ≥ M + 3 ≥ 9`.
+    have hfac : M ! ≤ 2 ^ m := by rw [← hpow, ← hMdef]; exact factorial_max_le_factSum h
+    have hm3 : M + 3 ≤ m := by
+      have hgt : 2 ^ (M + 2) < M ! := four_two_pow_lt_factorial hM6
+      have hlt : 2 ^ (M + 2) < 2 ^ m := lt_of_lt_of_le hgt hfac
+      have := (Nat.pow_lt_pow_iff_right (by norm_num : 1 < 2)).mp hlt
+      omega
+    have h16 : (16 : ℕ) ∣ factSum S := by
+      rw [hpow]; calc (16 : ℕ) = 2 ^ 4 := by norm_num
+        _ ∣ 2 ^ m := pow_dvd_pow 2 (by omega)
+    -- Parity step (mod 16): both-in or both-out give `factSum ≡ 8 (mod 16)`, contradicting `16 ∣`.
+    -- Hence exactly one of `{4,5} ∈ S`.
+    have hone : (4 ∈ S ∧ 5 ∉ S) ∨ (5 ∈ S ∧ 4 ∉ S) := by
+      by_cases h4 : (4 : ℕ) ∈ S <;> by_cases h5 : (5 : ℕ) ∈ S
+      · exact absurd h16 (not_pow2_dvd_factSum S {2, 3, 4, 5} 16
+          (by intro x hx; fin_cases hx <;> assumption)
+          (fun a ha => sixteen_dvd_factorial (by
+            have hmem := Finset.mem_sdiff.mp ha
+            have := hall a hmem.1
+            have hns := hmem.2; simp only [Finset.mem_insert, Finset.mem_singleton] at hns; omega))
+          (by decide))
+      · exact Or.inl ⟨h4, h5⟩
+      · exact Or.inr ⟨h5, h4⟩
+      · refine absurd h16 (not_pow2_dvd_factSum S {2, 3} 16
+          (by intro x hx; fin_cases hx <;> assumption)
+          (fun a ha => sixteen_dvd_factorial (by
+            have hmem := Finset.mem_sdiff.mp ha
+            have := hall a hmem.1
+            have hns := hmem.2; simp only [Finset.mem_insert, Finset.mem_singleton] at hns
+            have h4a : a ≠ 4 := by rintro rfl; exact h4 hmem.1
+            have h5a : a ≠ 5 := by rintro rfl; exact h5 hmem.1
+            omega))
+          (by decide))
+    rcases hone with ⟨h4, h5n⟩ | ⟨h5, h4n⟩
+    · -- `4 ∈ S` (and `5 ∉ S`): `factSum ≡ {16,32,48} (mod 64)`, never `0` — but `64 ∣ 2^m`. Closed.
+      have h64 : (64 : ℕ) ∣ factSum S := by
+        rw [hpow]; calc (64 : ℕ) = 2 ^ 6 := by norm_num
+          _ ∣ 2 ^ m := pow_dvd_pow 2 (by omega)
+      -- The low set is `{2,3,4}` plus whichever of `{6,7}` are present; in all four cases `∑ ≢ 0`.
+      by_cases h6 : (6 : ℕ) ∈ S <;> by_cases h7 : (7 : ℕ) ∈ S
+      · exact absurd h64 (not_pow2_dvd_factSum S {2, 3, 4, 6, 7} 64
+          (by intro x hx; fin_cases hx <;> assumption)
+          (fun a ha => sixtyfour_dvd_factorial (by
+            have hmem := Finset.mem_sdiff.mp ha
+            have := hall a hmem.1
+            have hns := hmem.2; simp only [Finset.mem_insert, Finset.mem_singleton] at hns
+            have : a ≠ 5 := by rintro rfl; exact h5n hmem.1
+            omega))
+          (by decide))
+      · exact absurd h64 (not_pow2_dvd_factSum S {2, 3, 4, 6} 64
+          (by intro x hx; fin_cases hx <;> assumption)
+          (fun a ha => sixtyfour_dvd_factorial (by
+            have hmem := Finset.mem_sdiff.mp ha
+            have := hall a hmem.1
+            have hns := hmem.2; simp only [Finset.mem_insert, Finset.mem_singleton] at hns
+            have hne5 : a ≠ 5 := by rintro rfl; exact h5n hmem.1
+            have hne7 : a ≠ 7 := by rintro rfl; exact h7 hmem.1
+            omega))
+          (by decide))
+      · exact absurd h64 (not_pow2_dvd_factSum S {2, 3, 4, 7} 64
+          (by intro x hx; fin_cases hx <;> assumption)
+          (fun a ha => sixtyfour_dvd_factorial (by
+            have hmem := Finset.mem_sdiff.mp ha
+            have := hall a hmem.1
+            have hns := hmem.2; simp only [Finset.mem_insert, Finset.mem_singleton] at hns
+            have hne5 : a ≠ 5 := by rintro rfl; exact h5n hmem.1
+            have hne6 : a ≠ 6 := by rintro rfl; exact h6 hmem.1
+            omega))
+          (by decide))
+      · exact absurd h64 (not_pow2_dvd_factSum S {2, 3, 4} 64
+          (by intro x hx; fin_cases hx <;> assumption)
+          (fun a ha => sixtyfour_dvd_factorial (by
+            have hmem := Finset.mem_sdiff.mp ha
+            have := hall a hmem.1
+            have hns := hmem.2; simp only [Finset.mem_insert, Finset.mem_singleton] at hns
+            have hne5 : a ≠ 5 := by rintro rfl; exact h5n hmem.1
+            have hne6 : a ≠ 6 := by rintro rfl; exact h6 hmem.1
+            have hne7 : a ≠ 7 := by rintro rfl; exact h7 hmem.1
+            omega))
+          (by decide))
+    · -- `5 ∈ S` (and `4 ∉ S`): the deep cascade. `{2,3,5} ↦ 2⁷` lives here; the descent recurses
+      -- (`v₂(∑_{a≥6} a!) = 7` is *achievable*, unlike the `=5` the `4`-branch needed). Open.
+      sorry
 
 /-- **The sharp tied-pair carry ceiling (Step 5).** When the
 bottom is a tied pair (`a₀ = min' S` even, `a₀+1 ∈ S`) and `factSum S = 2^m`, the carry from
@@ -491,19 +612,6 @@ theorem erdos_403_finite :
   refine Finset.mem_coe.mpr (Finset.mem_powerset.mpr (fun a ha => ?_))
   exact Finset.mem_range.mpr (Nat.lt_succ_of_le (le_trans (S.le_max' a ha) hMle))
 
-/-- Size helper: `2^(M+2) < M!` for `M ≥ 6` (so the sandwich `M! ≤ 2^m ≤ 2^{M+2}` forces `M ≤ 5`). -/
-theorem four_two_pow_lt_factorial {M : ℕ} (hM : 6 ≤ M) : 2 ^ (M + 2) < M ! := by
-  induction M with
-  | zero => omega
-  | succ k ih =>
-    rcases Nat.lt_or_ge k 6 with hk | hk
-    · have : k = 5 := by omega
-      subst this; decide
-    · have hrec : 2 ^ (k + 2) < k ! := ih hk
-      calc 2 ^ (k + 1 + 2) = 2 * 2 ^ (k + 2) := by ring
-        _ < 2 * k ! := by omega
-        _ ≤ (k + 1) * k ! := Nat.mul_le_mul_right _ (by omega)
-        _ = (k + 1)! := (Nat.factorial_succ k).symm
 
 /-- **Sharp, unique-min half (unconditional).** A unique-min solution has `m = v₂(a₀!) ≤ a₀ ≤ M ≤ 3`.
 So any `m ∈ {5,7}` solution must be tied-pair — the sharp content lives entirely in the kernel. -/
