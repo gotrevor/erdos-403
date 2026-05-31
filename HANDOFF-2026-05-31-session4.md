@@ -32,10 +32,22 @@ system (FNS)** — `PLAN.md` is the authoritative multi-session map. **Read it f
   indicators), `factDigit_top`/`two_le_factDigit_top` (leading digit), `factSum_digit_dichotomy`,
   `not_factSum_of_digits`. Axiom-clean.
 
+## 🔑 Session-4 reconciliation (READ — corrects the session-3 framing)
+A deep read of `Basic.lean` showed the sessions 1-2 **valuation track already proves everything bar
+one `sorry`** (`tied_carry_ceiling`): unique-min case fully closed (`v2_factSum_of_unique_min`,
+`m_le_max_of_unique_min`), `min'_le_two`, and `erdos_403_finite` modulo that sorry. **Crucially, FNS
+C-7b ≡ `tied_carry_ceiling` (narrowed).** FNS's even-`m`/upper-odd-`m` kills use a *fixed digit* and
+were never the kernel; the lower-half-odd-`m` residual *is* the same bounded-carry kernel. So C-7b is
+**not** an easier path around `tied_carry_ceiling` — there's one kernel, attack it once. Full
+write-up: `PLAN.md` "Session-4 reconciliation". **Sharpened handle:** via `min'_le_two` + the `0!=1!`
+twin, WLOG the tied bottom pair is exactly `{2,3}` (→ `8 = 2³`); the carry cascade is self-similar
+(each `v₂`-level is a pair `{2j,2j+1}`); bound the chain ⟹ `B = 2`. This lone bound is the
+unpublished Lin/Frankl estimate.
+
 ## 🎬 Next actions
-1. **Phase C-7b (the nut): odd `m ≥ 9`, `2^m ∈ [M!,2M!)` ⟹ a *middle* digit `≥ 2`.** This is the
-   irreducible Lin core (~50%, multi-session). Session-4 brute-force recon (in `PLAN.md` step 7b)
-   pruned the dead ends:
+1. **The kernel — `tied_carry_ceiling` (Basic.lean) ≡ FNS C-7b.** Bottom is now pinned to `{2,3}`
+   (cleaner than session-3's framing). This is the irreducible Lin core (~50%, multi-session).
+   Session-4 brute-force recon (in `PLAN.md` step 7b) pruned the dead ends:
    - **No fixed witness digit** — the first `d_i ≥ 2` wanders with `m`; `d_{M-1} ≥ 2` *fails* (m=29).
      So the even-`m` modular-digit trick can't be reused. 7b **must** be a counting/valuation
      contradiction: *assume all digits `≤ 1`, derive `2^m` unrepresentable.*

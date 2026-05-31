@@ -120,6 +120,37 @@ Two regimes (by the leading digit `d_M = ⌊2^m/M!⌋`, `M` = largest factorial 
 **Phase A done (session 3), all axiom-clean.** The endgame now only needs, for each `m ≥ 8`, a
 positive-index factorial digit `≥ 2` in *both* `2^m` and `2^m − 1` (→ `not_factSum_of_digits`).
 
+## ⚠️ Session-4 reconciliation: the two tracks share one kernel
+
+A deep read of `Basic.lean` (the sessions 1-2 valuation track) reshapes the strategy. **`Basic.lean`
+already proves everything except a single `sorry`:**
+- `v2_factSum_of_unique_min` + `m_le_max_of_unique_min`: the **unique-min case is fully closed**
+  (`v₂(factSum S) = v₂(a₀!) ≤ a₀ ≤ M`, axiom-clean). This is exactly the "no-cancellation kill."
+- `min'_le_two`: every solution has `min' S ∈ {0,1,2}` (else `3 ∣ 2^m`).
+- `erdos_403_finite` is **proven modulo the lone `tied_carry_ceiling` sorry** (the bounded-carry
+  estimate for the *tied-pair* bottom case).
+
+**The FNS track (`Sharp.lean`) and `tied_carry_ceiling` bottom out at the SAME kernel.** The
+session-3 hope that FNS would "supersede / retire `tied_carry_ceiling`" was over-optimistic:
+- FNS Phase B (even `m`) + C-7a (upper-half odd `m`) kill their cases via a **fixed digit** — those
+  were *never* the kernel (they're the unique-min-ish / leading-digit cases).
+- FNS C-7b (lower-half odd `m`, leading digit 1) **is** the tied-pair bounded-carry kernel in
+  disguise. No free lunch. So C-7b is not an easier path around `tied_carry_ceiling`; pursue the
+  kernel **once**, in whichever framing is cleaner.
+
+**Sharpened kernel (the real handle, session-4 brute-force + min'_le_two):** every `m ≥ 2` solution
+has a representation whose **bottom pair is exactly `{2,3}`** (the `0!=1!` twin maps
+`[0,1,…] ↔ [2,…]`; e.g. `2^7`: `[0,1,3,5] ↔ [2,3,5]`). So WLOG the tied bottom is `{2,3}`,
+contributing `2!+3! = 8 = 2³`. The cascade is **self-similar** — each `v₂`-level is a pair
+`{2j,2j+1}`, and `8` carries up exactly when the next occupied level already holds a factorial
+(witness: `{2,3}→8` at `v₂=3`, meets `5!=120` at `v₂=3`, `8+120=128=2⁷`). The kernel is: *bound how
+far this carry chains.* Empirically `m − max' S ≤ 2`, so `tied_carry_ceiling` holds with `B = 2`.
+This lone bound is the **unpublished Lin/Frankl estimate** — genuinely hard, multi-session, no clean
+one-lemma proof found. **Recommendation:** discharge `tied_carry_ceiling` directly in `Basic.lean`
+(bottom now pinned to `{2,3}` — a cleaner framing than session-3 had), or bank
+finiteness-modulo-Lin + sharp-modulo-Lin as the honest deliverable. The FNS kills remain valuable:
+they narrow `tied_carry_ceiling`'s residual scope to "tied ∧ lower-half-odd."
+
 ## Confidence
 A: ~85% (standard, just laborious). B: ~80% (modular, but FNS-digit-of-`2^m` lemmas need care).
 C: ~50% (the real Lin kernel, now better-scoped). D: ~90% once A–C land.
