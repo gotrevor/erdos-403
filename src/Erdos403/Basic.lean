@@ -267,6 +267,22 @@ theorem sixteen_dvd_factorial {a : ℕ} (ha : 6 ≤ a) : (16 : ℕ) ∣ a ! :=
 theorem sixtyfour_dvd_factorial {a : ℕ} (ha : 8 ≤ a) : (64 : ℕ) ∣ a ! :=
   (by decide : (64 : ℕ) ∣ 8 !).trans (Nat.factorial_dvd_factorial ha)
 
+/-- `6 ∣ a!` for `a ≥ 3` (since `6 = 3!` and `3! ∣ a!`). The mod-6 companion of the higher
+helpers — used to isolate the lone `2! = 2` summand modulo `6`. -/
+theorem six_dvd_factorial {a : ℕ} (ha : 3 ≤ a) : (6 : ℕ) ∣ a ! :=
+  (by decide : (6 : ℕ) ∣ 3 !).trans (Nat.factorial_dvd_factorial ha)
+
+/-- `4ʲ ≡ 4 (mod 6)` for `j ≥ 1`. The parity engine: it makes `2^m % 6 = 4` for even `m ≥ 2`,
+the obstruction that forces `m` odd whenever `2^m ≡ 2 (mod 6)`. -/
+theorem four_pow_mod_six : ∀ j, 1 ≤ j → (4 : ℕ) ^ j % 6 = 4 := by
+  intro j hj
+  induction j with
+  | zero => omega
+  | succ k ih =>
+    rcases Nat.eq_zero_or_pos k with hk | hk
+    · subst hk; decide
+    · rw [pow_succ, Nat.mul_mod, ih hk]
+
 /-- **Low-part residue tool.** If a `low` subset of `S` has every `S \ low` term divisible by `k`,
 then `factSum S` is divisible by `k` iff the (constant) `∑ low` is — so a `¬ k ∣ ∑ low` check
 refutes `k ∣ factSum S`. This is the workhorse for the bottom mod-`2ᵏ` parity steps of the cascade:
@@ -440,14 +456,37 @@ theorem cascade_two {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
             omega))
           (by decide))
     · -- `5 ∈ S` (and `4 ∉ S`): the genuinely unbounded cascade — the irreducible Lin/Frankl kernel.
-      -- `factSum = 128 + ∑_{a≥6} a!`, and the carry `v₂(head_n)` (which must equal `v₂(tail_n)` at
-      -- every split, since `head+tail = 2^m`) threads through the boundaries `v₂(n!)` without ever
-      -- landing in a "gap" `(v₂(n!), v₂((n+2)!))`. Unlike the `4`-branch (where the forced carry `5`
-      -- fell in the gap `(4,7)` and died at mod 64), here the required carry `7` is *achievable*, and
-      -- the threading family `{2,3,5,6,7,11,12,15,16,19,20,…}` keeps it alive arbitrarily far up.
-      -- Verified (Python, `tools/`-style): NO fixed modulus refutes this branch — the `2`-power
-      -- needed to expose the nonzero odd part grows with `M` (`2¹¹` at `M=11`, `2²¹` at `M=20`). So
-      -- this needs a global induction (Lin's unpublished argument), not a bounded mod check. OPEN.
+      -- **First, a free reduction to `m` odd (the FNS `d₂ = 2` even-kill, as mod-6 arithmetic).**
+      -- Here `min' S = 2`, so `0, 1 ∉ S`: every index is `≥ 2`. Hence the only summand of `factSum S`
+      -- not divisible by `6 = 3!` is the lone `2! = 2`, giving `factSum S ≡ 2 (mod 6)`. With
+      -- `factSum S = 2^m`, this forces `2^m ≡ 2 (mod 6)`, i.e. `m` odd (even `m` gives `2^m ≡ 4`).
+      -- So the even-`m` half of this branch dies outright; the residue lives entirely in odd `m`.
+      have h2mem : (2 : ℕ) ∈ S := h2
+      have hmod6 : factSum S % 6 = 2 := by
+        have hdvd6 : (6 : ℕ) ∣ ∑ a ∈ S.erase 2, a ! :=
+          Finset.dvd_sum fun a ha => by
+            rw [Finset.mem_erase] at ha
+            exact six_dvd_factorial (by have := hall a ha.2; omega)
+        have hsplit : factSum S = 2 ! + ∑ a ∈ S.erase 2, a ! := by
+          rw [factSum]; exact (Finset.add_sum_erase S _ h2mem).symm
+        obtain ⟨k, hk⟩ := hdvd6
+        rw [hsplit, hk, Nat.factorial_two]; omega
+      have hodd : Odd m := by
+        by_contra hne
+        rw [Nat.not_odd_iff_even] at hne
+        obtain ⟨j, hj⟩ := hne
+        have hj1 : 1 ≤ j := by omega
+        have h4 : (2 : ℕ) ^ m % 6 = 4 := by
+          rw [hj, ← two_mul, pow_mul]; norm_num [four_pow_mod_six j hj1]
+        rw [hpow] at hmod6; omega
+      -- **The odd-`m` kernel (OPEN).** `factSum = 128 + ∑_{a≥6} a!`, and the carry `v₂(head_n)`
+      -- (forced equal to `v₂(tail_n)` at every split, since `head + tail = 2^m`) threads through the
+      -- boundaries `v₂(n!)` without ever landing in a "gap" `(v₂(n!), v₂((n+2)!))`. Unlike the
+      -- `4`-branch (forced carry `5` fell in the gap `(4,7)`, died at mod 64), here the required carry
+      -- `7` is *achievable*, and the threading family `{2,3,5,6,7,11,12,15,16,19,20,…}` keeps it alive
+      -- arbitrarily far. Verified (Python): NO fixed modulus refutes it — the `2`-power needed to
+      -- expose the nonzero odd part grows with `M` (`2¹¹` at `M=11`, `2²¹` at `M=20`). Needs a global
+      -- induction (Lin's unpublished argument), now with `hodd : Odd m` in scope to build on.
       sorry
 
 /-- **The sharp tied-pair carry ceiling (Step 5).** When the

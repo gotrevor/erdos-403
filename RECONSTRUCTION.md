@@ -160,8 +160,9 @@ single bottom-pinned kernel `cascade_two (min'=2 ∧ 3∈S ∧ factSum=2^m → m
 
 Inside `cascade_two`, the `M = max' S ≤ 5` regime falls to the sandwich (`M! < 2^{M+2}` for `M ≤ 5`
 by `decide`), so the **lone `sorry` is scoped to `M ≥ 6`** — the regime where `2^{M+2} < M!` makes
-the sandwich too weak and only the odd-part-`1` constraint tames the carry. This `M ≥ 6` cascade is
-the irreducible Lin/Frankl estimate. `#print axioms` of `erdos_403_finite`/`erdos_403_sharp` = the
+the sandwich too weak and only the odd-part-`1` constraint tames the carry. **Session 6 narrowed it
+further to `M ≥ 6` ∧ odd `m`** (the even-`m` half dies by a mod-6 argument — see Session-6 note below).
+This `M ≥ 6`, odd-`m` cascade is the irreducible Lin/Frankl estimate. `#print axioms` of `erdos_403_finite`/`erdos_403_sharp` = the
 standard three + `sorryAx` (via `cascade_two` only).
 
 ### Why the kernel is genuinely hard (the cascade, traced)
@@ -177,6 +178,35 @@ there is no cheap crude bound — `v₂(factSum)` is genuinely unbounded over ge
 (`{2k,2k+1}` gives `v₂ ≈ 2k`), and only the odd-part-`=1` constraint tames it. This is the clean
 self-contained target for the Aristotle race: *"the cascade `1 + ∑_{a≥4} a!/8 = 2^{m-3}` has no
 solution with `m > 7`."*
+
+### Session 6 (2026-05-31) — kernel narrowed to **odd `m`**; FNS structure mapped
+The lone `sorry` (the `5∈S`, `4∉S`, `M≥6` branch of `cascade_two`) now opens with a **free reduction
+to odd `m`**, proven and axiom-clean. Mechanism (the FNS `d₂ = 2` even-kill, recast as elementary
+mod-6 arithmetic so it stays inside `Basic.lean`, which `FactBase` imports): here `min' S = 2`, so
+`0,1 ∉ S` and every index is `≥ 2`; the only summand of `factSum S` not divisible by `6 = 3!` is the
+lone `2! = 2`, whence `factSum S ≡ 2 (mod 6)`. With `factSum S = 2^m` this gives `2^m ≡ 2 (mod 6)`,
+and since `2^m ≡ 4 (mod 6)` for even `m ≥ 2` (via `4ʲ ≡ 4 mod 6`, new helper `four_pow_mod_six`),
+**`m` must be odd.** New axiom-clean helpers: `six_dvd_factorial`, `four_pow_mod_six`. The `sorry` now
+carries `hodd : Odd m` in scope — a strictly stronger starting point for the global induction.
+
+**Why this is more than bookkeeping — the FNS doubling transducer.** The honest global picture
+(Python-verified, this session): `2^m` is a sum of distinct factorials iff every factorial-base digit
+`dᵢ(2^m) ≤ 1` (`FactBase.factDigit_factSum_le_one` / `not_factSum_of_digits`). Splitting on `m`:
+- **Even `m ≥ 2`:** `d₂(2^m) = 2^{m-1} mod 3 = 2` — closed form, always `≥ 2`. (And `d₃(2^m−1) = 2`
+  for even `m ≥ 4`, via `2^m ≡ 16 mod 24`.) This is exactly the mod-6 even-kill above. **Trivial.**
+- **Odd `m`:** the smallest index with a digit `≥ 2` *wanders* — empirically index 5 catches most odd
+  `m`, but exceptions push it to 7, 8, …, **11** (at `m = 223`), and the index grows like
+  `~log m / log log m` (heuristic; the all-`≤1` probability up to `K` is `≈ 2^K/(K+1)!`). So **no
+  fixed modulus / finite digit-set closes the odd case** — confirmed by direct FNS search, independent
+  of the earlier carry-based confirmation. This *is* the irreducible kernel.
+
+The natural inductive object is the **doubling transducer** on FNS digits: `2^{m} → 2^{m+1}` processes
+positions low→high with `total = 2dᵢ + c_in`, `dᵢ' = total mod (i+1)`, `c_out = total div (i+1) ∈ {0,1}`
+(since `2dᵢ ≤ 2i < 2(i+1)`). "All digits `≤ 1`" is a property this transducer breaks and *heals* (it
+holds at `m=7`, fails at `6,8`), and the radix `(i+1)` grows with position — precisely why it is not a
+fixed finite automaton and why Lin's estimate is genuinely global. **This is the path for the next
+grind:** find the invariant on the doubling transducer that forbids returning to all-digits-`≤1` for
+odd `m ≥ 9`.
 
 ## Confidence
 - Steps 1–4 + ties + step 6 (the whole **unique-min** half + finiteness skeleton): **DONE** (was ~85%).
