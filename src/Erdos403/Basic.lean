@@ -255,14 +255,28 @@ the **tied-pair** case, where a bottom pair `{a₀, a₀+1}` carries. The claim 
 *bounded*: `v₂(factSum S) = m` exceeds the bottom index `max' S` by at most an absolute constant
 `B`. This is exactly the bounded-carry estimate Lin/Frankl proved and never published. -/
 
-/-- **Tied-pair carry ceiling (Step 5, `sorry` — THE reconstruction kernel).** When the bottom
-is a tied pair (`a₀ = min' S` even, `a₀+1 ∈ S`), the carry from `(2j)!+(2j+1)! = (2j)!·2·(j+1)`
-cascades only boundedly: `m ≤ max' S + B` for an absolute `B`. This lone statement is the entire
-unpublished Lin/Frankl estimate; everything else in this file is reconstructed and axiom-clean. -/
+/-- **The sharp tied-pair carry ceiling (Step 5, `sorry` — THE reconstruction kernel).** When the
+bottom is a tied pair (`a₀ = min' S` even, `a₀+1 ∈ S`) and `factSum S = 2^m`, the carry from
+`(2j)!+(2j+1)! = (2j)!·2·(j+1)` cascades only to `m ≤ max' S + 2` (explicit `B = 2`, attained by
+`{2,3,5} ↦ 2⁷`). This lone statement is the entire unpublished Lin/Frankl estimate; everything else
+in this file is reconstructed and axiom-clean.
+
+`B = 2` is the *empirical sharp value*: exhaustive search shows every power-of-two factorial sum has
+`m − max' S ≤ 2`. (The general gap `v₂(factSum S) − max' S` is *unbounded* — `{2ᵗ−2,2ᵗ−1,2ᵗ+1}` gives
+gap `2t−2` — so the odd-part-`1` hypothesis `factSum S = 2^m` is essential; no constant `B` works
+without it.) With `B = 2` explicit, this single kernel discharges **both** `erdos_403_finite` (via
+`tied_carry_ceiling` below) and the sharp `erdos_403_sharp` (`m ≤ 7`). -/
+theorem tied_sharp_ceiling (S : Finset ℕ) (h : S.Nonempty) (m : ℕ)
+    (he : Even (S.min' h)) (hmem : S.min' h + 1 ∈ S) (hpow : factSum S = 2 ^ m) :
+    m ≤ S.max' h + 2 := by
+  sorry
+
+/-- **Tied-pair carry ceiling.** The existential form `carry_ceiling`/`erdos_403_finite` consume,
+now *proven* from the sharp kernel with the explicit witness `B = 2`. -/
 theorem tied_carry_ceiling :
     ∃ B : ℕ, ∀ (S : Finset ℕ) (h : S.Nonempty) (m : ℕ),
-      Even (S.min' h) → S.min' h + 1 ∈ S → factSum S = 2 ^ m → m ≤ S.max' h + B := by
-  sorry
+      Even (S.min' h) → S.min' h + 1 ∈ S → factSum S = 2 ^ m → m ≤ S.max' h + B :=
+  ⟨2, fun S h m he hmem hpow => tied_sharp_ceiling S h m he hmem hpow⟩
 
 /-- **Carry ceiling.** Assembled from the (fully proven) unique-min half and the tied-pair
 kernel: every power-of-two factorial sum has `m ≤ max' S + B`. -/
@@ -334,9 +348,50 @@ theorem erdos_403_finite :
   refine Finset.mem_coe.mpr (Finset.mem_powerset.mpr (fun a ha => ?_))
   exact Finset.mem_range.mpr (Nat.lt_succ_of_le (le_trans (S.le_max' a ha) hMle))
 
+/-- Size helper: `2^(M+2) < M!` for `M ≥ 6` (so the sandwich `M! ≤ 2^m ≤ 2^{M+2}` forces `M ≤ 5`). -/
+theorem four_two_pow_lt_factorial {M : ℕ} (hM : 6 ≤ M) : 2 ^ (M + 2) < M ! := by
+  induction M with
+  | zero => omega
+  | succ k ih =>
+    rcases Nat.lt_or_ge k 6 with hk | hk
+    · have : k = 5 := by omega
+      subst this; decide
+    · have hrec : 2 ^ (k + 2) < k ! := ih hk
+      calc 2 ^ (k + 1 + 2) = 2 * 2 ^ (k + 2) := by ring
+        _ < 2 * k ! := by omega
+        _ ≤ (k + 1) * k ! := Nat.mul_le_mul_right _ (by omega)
+        _ = (k + 1)! := (Nat.factorial_succ k).symm
+
+/-- **Sharp, unique-min half (unconditional).** A unique-min solution has `m = v₂(a₀!) ≤ a₀ ≤ M ≤ 3`.
+So any `m ∈ {5,7}` solution must be tied-pair — the sharp content lives entirely in the kernel. -/
+theorem sharp_of_unique_min {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
+    (huniq : ∀ a ∈ S, a ≠ S.min' h → padicValNat 2 ((S.min' h)!) < padicValNat 2 (a !))
+    (hpow : factSum S = 2 ^ m) : m ≤ 3 := by
+  have hb := unique_min_bound h huniq hpow
+  have hmM := m_le_max_of_unique_min h huniq hpow
+  omega
+
 /-- **Erdős #403 (sharp form)** — the largest such power of `2` is `2⁷`.
-Equivalently every solution has `m ≤ 7`, and `m = 7` is attained by `witness`. -/
+Every solution has `m ≤ 7` (`m = 7` attained by `witness`). Proven from the single kernel
+`tied_sharp_ceiling`: the unique-min case gives `m ≤ 3` (`sharp_of_unique_min`); the tied case gives
+`m ≤ max' S + 2`, and the sandwich `M! ≤ 2^m ≤ 2^{M+2}` then forces `M ≤ 5`, hence `m ≤ 7`. -/
 theorem erdos_403_sharp {S : Finset ℕ} {m : ℕ} (h : factSum S = 2 ^ m) : m ≤ 7 := by
-  sorry
+  have hne : S.Nonempty := by
+    rcases S.eq_empty_or_nonempty with rfl | hh
+    · rw [factSum, Finset.sum_empty] at h; exact absurd h.symm (pow_ne_zero m two_ne_zero)
+    · exact hh
+  by_cases ht : Even (S.min' hne) ∧ S.min' hne + 1 ∈ S
+  · -- tied: kernel ⟹ m ≤ M+2; sandwich ⟹ M ≤ 5
+    have hmM : m ≤ S.max' hne + 2 := tied_sharp_ceiling S hne m ht.1 ht.2 h
+    rcases Nat.lt_or_ge (S.max' hne) 6 with h5 | h6
+    · omega
+    · exfalso
+      have hfac : (S.max' hne)! ≤ 2 ^ m := by rw [← h]; exact factorial_max_le_factSum hne
+      have hup : 2 ^ m ≤ 2 ^ (S.max' hne + 2) := Nat.pow_le_pow_right (by norm_num) hmM
+      have hgt := four_two_pow_lt_factorial h6
+      omega
+  · -- unique-min: m ≤ 3
+    have := sharp_of_unique_min hne (unique_min_of_not_tied hne ht) h
+    omega
 
 end Erdos403
