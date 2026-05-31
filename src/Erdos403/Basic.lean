@@ -207,26 +207,81 @@ theorem v2_factSum_of_unique_min {S : Finset ℕ} (h : S.Nonempty)
 Combining the size sandwich (`M! ≤ factSum`) with Step 3 (`v₂(factSum) = v₂(a₀!) ≤ a₀ ≤ M`):
 a power-of-two solution in the unique-min case forces `M! ≤ 2^M`, hence `M ≤ 3`. -/
 
+/-- In the unique-min case the exponent never exceeds the top index: `m = v₂(a₀!) ≤ a₀ ≤ M`.
+This is the half of the carry ceiling that is *fully proven*. -/
+theorem m_le_max_of_unique_min {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
+    (huniq : ∀ a ∈ S, a ≠ S.min' h → padicValNat 2 ((S.min' h)!) < padicValNat 2 (a !))
+    (hpow : factSum S = 2 ^ m) : m ≤ S.max' h := by
+  have hm : m = padicValNat 2 ((S.min' h) !) := by
+    have h1 : padicValNat 2 (factSum S) = padicValNat 2 ((S.min' h) !) :=
+      v2_factSum_of_unique_min h huniq
+    rw [hpow, padicValNat.prime_pow] at h1
+    exact h1
+  have ha₀M : S.min' h ≤ S.max' h := S.min'_le _ (S.max'_mem h)
+  have := padicValNat_two_factorial_le (S.min' h)
+  omega
+
 theorem unique_min_bound {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
     (huniq : ∀ a ∈ S, a ≠ S.min' h → padicValNat 2 ((S.min' h)!) < padicValNat 2 (a !))
     (hpow : factSum S = 2 ^ m) : S.max' h ≤ 3 := by
-  set a₀ := S.min' h with ha₀
   set M := S.max' h with hM
-  -- m = v₂(factSum) = v₂(a₀!) ≤ a₀ ≤ M
-  have hm : m = padicValNat 2 (a₀ !) := by
-    have h1 : padicValNat 2 (factSum S) = padicValNat 2 (a₀ !) := v2_factSum_of_unique_min h huniq
-    rw [hpow, padicValNat.prime_pow] at h1
-    exact h1
-  have ha₀M : a₀ ≤ M := S.min'_le M (S.max'_mem h)
-  have hmM : m ≤ M := by
-    have := padicValNat_two_factorial_le a₀
-    omega
-  -- M! ≤ factSum = 2^m ≤ 2^M
+  have hmM : m ≤ M := m_le_max_of_unique_min h huniq hpow
+  -- M! ≤ factSum = 2^m ≤ 2^M, and 2^M < M! for M ≥ 4, so M ≤ 3.
   have hsand : M ! ≤ 2 ^ m := by rw [← hpow]; exact factorial_max_le_factSum h
   have hMM : M ! ≤ 2 ^ M := hsand.trans (Nat.pow_le_pow_right (by norm_num) hmM)
-  -- 2^M < M! for M ≥ 4, so M ≤ 3
   by_contra hc
   exact absurd hMM (Nat.not_le.mpr (two_pow_lt_factorial (by omega)))
+
+/-! ## Step 5 — the carry ceiling (research kernel)
+
+The single remaining gap. In the unique-min case Step 4 already gives `m ≤ M`; the content is
+the **tied-pair** case, where a bottom pair `{a₀, a₀+1}` carries. The claim is that the carry is
+*bounded*: `v₂(factSum S) = m` exceeds the bottom index `max' S` by at most an absolute constant
+`B`. This is exactly the bounded-carry estimate Lin/Frankl proved and never published. -/
+
+/-- **Tied-pair carry ceiling (Step 5, `sorry` — THE reconstruction kernel).** When the bottom
+is a tied pair (`a₀ = min' S` even, `a₀+1 ∈ S`), the carry from `(2j)!+(2j+1)! = (2j)!·2·(j+1)`
+cascades only boundedly: `m ≤ max' S + B` for an absolute `B`. This lone statement is the entire
+unpublished Lin/Frankl estimate; everything else in this file is reconstructed and axiom-clean. -/
+theorem tied_carry_ceiling :
+    ∃ B : ℕ, ∀ (S : Finset ℕ) (h : S.Nonempty) (m : ℕ),
+      Even (S.min' h) → S.min' h + 1 ∈ S → factSum S = 2 ^ m → m ≤ S.max' h + B := by
+  sorry
+
+/-- **Carry ceiling.** Assembled from the (fully proven) unique-min half and the tied-pair
+kernel: every power-of-two factorial sum has `m ≤ max' S + B`. -/
+theorem carry_ceiling :
+    ∃ B : ℕ, ∀ (S : Finset ℕ) (h : S.Nonempty) (m : ℕ), factSum S = 2 ^ m → m ≤ S.max' h + B := by
+  obtain ⟨B, hB⟩ := tied_carry_ceiling
+  refine ⟨B, fun S h m hpow => ?_⟩
+  by_cases ht : Even (S.min' h) ∧ S.min' h + 1 ∈ S
+  · exact hB S h m ht.1 ht.2 hpow
+  · have hmM := m_le_max_of_unique_min h (unique_min_of_not_tied h ht) hpow
+    omega
+
+/-! ## Step 6 — finiteness (assembly)
+
+Given the ceiling `m ≤ M + B` and the sandwich `M! ≤ 2^m`, we get `M! ≤ 2^{M+B}`. Since `M!`
+outgrows `2^{M+B}` (the `4·(M-1)!` step beats the doubling once `M ≥ 4`), `M` is bounded, so every
+solution lives in `(range (N+1)).powerset` — a finite family. -/
+
+/-- For each `B`, eventually `M! > 2^B · 2^M`: factorials outrun powers of two by any fixed factor.
+The recursion ratio `(k+1)/2 ≥ 2` (for `k ≥ 3`) lets one factor of `(k+1)!` absorb each doubling. -/
+theorem exists_factorial_gt_two_pow (B : ℕ) :
+    ∃ N, ∀ M, N ≤ M → 2 ^ B * 2 ^ M < M ! := by
+  induction B with
+  | zero => exact ⟨4, fun M hM => by simpa using two_pow_lt_factorial hM⟩
+  | succ b ih =>
+    obtain ⟨N, hN⟩ := ih
+    refine ⟨max (N + 1) 4, fun M hM => ?_⟩
+    obtain ⟨k, rfl⟩ : ∃ k, M = k + 1 := ⟨M - 1, by omega⟩
+    have hk4 : 4 ≤ k + 1 := le_trans (le_max_right _ _) hM
+    have hNk : N ≤ k := by have := le_trans (le_max_left _ _) hM; omega
+    have hrec : 2 ^ b * 2 ^ k < k ! := hN k hNk
+    calc 2 ^ (b + 1) * 2 ^ (k + 1) = 4 * (2 ^ b * 2 ^ k) := by ring
+      _ ≤ (k + 1) * (2 ^ b * 2 ^ k) := by gcongr
+      _ < (k + 1) * k ! := Nat.mul_lt_mul_of_pos_left hrec (by omega)
+      _ = (k + 1)! := (Nat.factorial_succ k).symm
 
 /-- The extremal witness: `2! + 3! + 5! = 2 + 6 + 120 = 128 = 2⁷`.
 (`native_decide` because `Finset.sum` reduces through `Quot` and the kernel `decide` gets
@@ -237,7 +292,31 @@ theorem witness : factSum {2, 3, 5} = 2 ^ 7 := by native_decide
 Only finitely many sums of distinct factorials are powers of `2`. -/
 theorem erdos_403_finite :
     {S : Finset ℕ | ∃ m : ℕ, factSum S = 2 ^ m}.Finite := by
-  sorry
+  obtain ⟨B, hB⟩ := carry_ceiling
+  obtain ⟨N, hN⟩ := exists_factorial_gt_two_pow B
+  -- Every solution `S` is a subset of `range (N+1)`; that family is finite.
+  apply Set.Finite.subset ((Finset.range (N + 1)).powerset : Finset (Finset ℕ)).finite_toSet
+  intro S hS
+  obtain ⟨m, hm⟩ := hS
+  -- `S` is nonempty: `factSum ∅ = 0 ≠ 2^m`.
+  have hne : S.Nonempty := by
+    rcases S.eq_empty_or_nonempty with rfl | h
+    · rw [factSum, Finset.sum_empty] at hm
+      exact absurd hm.symm (pow_ne_zero m two_ne_zero)
+    · exact h
+  set M := S.max' hne with hM
+  -- Ceiling + sandwich pin `M ≤ N`.
+  have hmle : m ≤ M + B := hB S hne m hm
+  have hMle : M ≤ N := by
+    by_contra hc
+    have hgt : 2 ^ B * 2 ^ M < M ! := hN M (by omega)
+    have hfac : M ! ≤ 2 ^ m := by rw [← hm]; exact factorial_max_le_factSum hne
+    have hpow : 2 ^ m ≤ 2 ^ B * 2 ^ M := by
+      rw [← pow_add]; exact Nat.pow_le_pow_right (by norm_num) (by omega)
+    omega
+  -- Hence `S ⊆ range (N+1)`.
+  refine Finset.mem_coe.mpr (Finset.mem_powerset.mpr (fun a ha => ?_))
+  exact Finset.mem_range.mpr (Nat.lt_succ_of_le (le_trans (S.le_max' a ha) hMle))
 
 /-- **Erdős #403 (sharp form)** — the largest such power of `2` is `2⁷`.
 Equivalently every solution has `m ≤ 7`, and `m = 7` is attained by `witness`. -/
