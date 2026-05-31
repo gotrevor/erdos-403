@@ -104,6 +104,58 @@ theorem padicValNat_two_factorial_mono {a b : ℕ} (hab : a ≤ b) :
   have h2 : (2 : ℕ) ^ k ∣ b ! := h1.trans (Nat.factorial_dvd_factorial hab)
   exact (padicValNat_dvd_iff_le (p := 2) (Nat.factorial_ne_zero b)).mp h2
 
+/-- The single-step valuation increment: `v₂((n+1)!) = v₂(n!) + v₂(n+1)`. -/
+theorem v2_factorial_succ (n : ℕ) :
+    padicValNat 2 ((n + 1)!) = padicValNat 2 (n !) + padicValNat 2 (n + 1) := by
+  rw [Nat.factorial_succ, padicValNat.mul (by omega) (Nat.factorial_ne_zero n)]
+  omega
+
+/-- **Ties only come in consecutive pairs.** Crossing a span of two strictly increases `v₂`,
+because of the two consecutive integers `n+1, n+2` one is even. -/
+theorem v2_factorial_lt_factorial_add_two (n : ℕ) :
+    padicValNat 2 (n !) < padicValNat 2 ((n + 2)!) := by
+  have h1 : padicValNat 2 ((n + 2)!) = padicValNat 2 ((n + 1)!) + padicValNat 2 (n + 2) :=
+    v2_factorial_succ (n + 1)
+  have h2 : padicValNat 2 ((n + 1)!) = padicValNat 2 (n !) + padicValNat 2 (n + 1) :=
+    v2_factorial_succ n
+  have hone : 1 ≤ padicValNat 2 (n + 1) + padicValNat 2 (n + 2) := by
+    rcases (by omega : (2 : ℕ) ∣ (n + 1) ∨ (2 : ℕ) ∣ (n + 2)) with hd | hd
+    · have := one_le_padicValNat_of_dvd (p := 2) (by omega) hd; omega
+    · have := one_le_padicValNat_of_dvd (p := 2) (by omega) hd; omega
+  omega
+
+/-- Distance ≥ 2 gives strict growth (combine the span-of-two jump with monotonicity). -/
+theorem v2_factorial_lt_of_add_two_le {a b : ℕ} (h : a + 2 ≤ b) :
+    padicValNat 2 (a !) < padicValNat 2 (b !) :=
+  lt_of_lt_of_le (v2_factorial_lt_factorial_add_two a) (padicValNat_two_factorial_mono h)
+
+/-- Stepping past an **odd** `a` strictly increases `v₂` (the successor `a+1` is even). -/
+theorem v2_factorial_lt_succ_of_odd {a : ℕ} (ho : Odd a) :
+    padicValNat 2 (a !) < padicValNat 2 ((a + 1)!) := by
+  rw [v2_factorial_succ]
+  have hd : (2 : ℕ) ∣ (a + 1) := by rcases ho with ⟨t, rfl⟩; omega
+  have := one_le_padicValNat_of_dvd (p := 2) (by omega) hd
+  omega
+
+/-- **The unique-minimum dichotomy.** If the bottom is *not* a tied pair (`a₀` even with
+`a₀+1 ∈ S`), then `a₀ = min' S` is the unique `v₂`-minimum — the hypothesis Step 3 needs.
+Conversely, by `v2_factorial_lt_factorial_add_two`, a tie can *only* be this bottom pair. -/
+theorem unique_min_of_not_tied {S : Finset ℕ} (h : S.Nonempty)
+    (hnt : ¬ (Even (S.min' h) ∧ S.min' h + 1 ∈ S)) :
+    ∀ a ∈ S, a ≠ S.min' h → padicValNat 2 ((S.min' h)!) < padicValNat 2 (a !) := by
+  set a₀ := S.min' h with ha₀
+  intro a ha hne
+  have hgt : a₀ < a := lt_of_le_of_ne (S.min'_le a ha) (Ne.symm hne)
+  rcases Nat.lt_or_ge a (a₀ + 2) with hlt | hge2
+  · have heq : a = a₀ + 1 := by omega
+    have hmem : a₀ + 1 ∈ S := heq ▸ ha
+    have hodd : Odd a₀ := by
+      rcases Nat.even_or_odd a₀ with he | ho
+      · exact absurd ⟨he, hmem⟩ hnt
+      · exact ho
+    rw [heq]; exact v2_factorial_lt_succ_of_odd hodd
+  · exact v2_factorial_lt_of_add_two_le hge2
+
 /-! ## Step 3 — the generic (unique-minimum) case
 
 If the smallest element `a₀ = min' S` has strictly-smallest `v₂(a₀!)` (the "unique minimum"
