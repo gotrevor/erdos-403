@@ -21,23 +21,25 @@ Allowing index `0` (`0! = 1! = 1`) adds exactly one optional unit, and `0!+1! = 
 So **`erdos_403_sharp` becomes: for `m ≥ 8`, both `2^m` and `2^m − 1` have a factorial digit `≥ 2`
 at some index `≥ 2`.** And `erdos_403_finite` follows from *any* bound on `m`.
 
-### What this buys us (clean partial kills — all elementary mod-arithmetic)
-- `d_2(2^m) = 2^{m-1} mod 3 = 2` for **even** `m` — but fixable by the `0!+1!=2!` carry, so not decisive alone.
-- `d_3(2^m) = 2` for **even** `m` (since `2^m mod 12 = 4`, `⌊4/3⌋…` ⇒ digit 2); `d_3` is **not**
-  fixable by the `0!` carry (no factorial degeneracy makes a second `3!`). Kills **branch 1** for even `m`.
-- `d_3(2^m − 1) = 2` for **odd** `m` (`2^m mod 12 = 8`, `2^m−1 ≡ 7`, `⌊7/3⌋ = 2`). Kills **branch 2**
-  for odd `m`.
+### What this buys us — verified against the enumeration (session 3)
+Computed `d_2, d_3` of `2^m` and `2^m − 1` (and the leading digit) for `m = 1..15`:
 
-So for odd `m`: representable ⟺ `∀i≥2 d_i(2^m) ≤ 1` (branch 2 dead). For even `m`: representable ⟺
-`∀i≥2 d_i(2^m − 1) ≤ 1` (branch 1 dead). Each large case is reduced to **a single all-digits-≤1 test
-on one number.**
+- **Even `m ≥ 4`: FULLY killed (Phase B done).** `2^m ≡ 16 (mod 24)` ⟹ `d_3(2^m) = 2` **and**
+  `d_3(2^m − 1) = 2`. `3! = 6` has no factorial degeneracy, so the `0!` carry rescues neither branch.
+  `not_factSum_of_digits` ⇒ `factSum_ne_of_even`.
+- **Odd `m`: small digits are useless.** For odd `m`, `d_2 = d_3 = ≤1` on *both* `2^m` and `2^m − 1`
+  (`d_2(2^m)=1, d_3(2^m)=1, d_2(2^m−1)=0, d_3(2^m−1)=1`). (My earlier note that odd `m` loses a
+  branch to `d_3` was WRONG — corrected here.) So odd `m` needs a *higher* digit `≥ 2` in **both**
+  numbers (the full `not_factSum_of_digits`).
 
-### The residual kernel (still genuinely Lin)
-For the surviving branch we must show some `d_i ≥ 2` (`i ≥ 2`). The *leading* digit
-`d_M = ⌊n/M!⌋` (`M` = largest factorial ≤ `n`) is `≤ 1` ⟺ `n ∈ [M!, 2M!)` — exactly the size
-sandwich. For the `n` where the leading digit is 1 (infinitely many `m`), a **middle** digit must be
-`≥ 2`; that is the irreducible cascade. **Now isolated to a single all-digits-≤1 test, no `0!` wrinkle,
-no tied/untied split.** This is where the real work (item 1) lives.
+### The residual kernel — odd `m ≥ 9` (genuinely Lin)
+Two regimes (by the leading digit `d_M = ⌊2^m/M!⌋`, `M` = largest factorial index `≤ 2^m`):
+- **Leading digit `≥ 2`** (i.e. `2^m ≥ 2·M!`): branch 1 dies by the leading digit; `2^m − 1` then
+  also has leading digit `≥ 2` (unless `2^m = 2M!`, tiny). **Provable sub-case** via the size
+  sandwich + a "leading digit" FNS lemma. Kills e.g. `m = 9, 11, 15`.
+- **Leading digit `= 1`** (`2^m ∈ [M!, 2M!)`, the size sandwich): need a **middle** digit `≥ 2`.
+  This is the irreducible cascade (e.g. `m = 13`: leading digit 1, but `d_6(2^13) = 4`). **The hard
+  core**, no `0!` wrinkle, no tied/untied split — just "some middle digit of `2^m` is `≥ 2`."
 
 ## Architecture / file layout
 
@@ -66,12 +68,14 @@ no tied/untied split.** This is where the real work (item 1) lives.
 6. `d_2`, `d_3` lemmas for `2^m` and `2^m−1` (the mod-12 facts above), reducing each parity class to a
    single one-number all-digits-≤1 test. (`decide`-friendly small modular computations.)
 
-### Phase C — the residual middle-digit lemma (item 1, hard half = Lin)
-7. Show: if `2^m ∈ [M!, 2M!)` (leading digit 1) and `m ≥ 8`, some middle `d_i ≥ 2`. Attack via the
-   cascade/recursion, now in clean FNS language. **This is the ~50% multi-session nut.** Possible
-   sub-approaches: (a) strong induction tracking the residual `2^k − const` shape; (b) bound the number
-   of consecutive tied levels via the exact-value (not just `v₂`) constraint; (c) a cleverer
-   size+digit argument specific to the surviving (leading-digit-1) `m`.
+### Phase C — the residual, odd `m ≥ 9` (item 1)
+7a. **Leading-digit FNS lemma + sub-case (provable).** Prove `factDigit M n = ⌊n/M!⌋` for `M` the
+    top index with `n < (M+1)!`, and `factDigit M n ≥ 2 ↔ 2·M! ≤ n`. Then odd `m` with `2^m ≥ 2·M!`
+    is killed (leading digit `≥ 2` in `2^m` and `2^m − 1`). Bank this first.
+7b. **Middle-digit hard core (Lin).** Remaining: odd `m ≥ 9` with `2^m ∈ [M!, 2M!)`. Show some
+    middle `d_i ≥ 2`. The ~50% multi-session nut. Sub-approaches: (a) strong induction tracking the
+    residual `2^k − const` shape; (b) bound consecutive tied levels via the exact-value constraint;
+    (c) a size+digit argument special to the leading-digit-1 regime.
 
 ### Phase D — assembly
 8. `erdos_403_sharp`: combine B + C to get a bound, then `decide` the finitely many `m ≤ B` ⇒ `m ≤ 7`.

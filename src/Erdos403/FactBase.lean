@@ -129,6 +129,20 @@ theorem factDigit_sum_factorial (T : Finset ℕ) (hT : ∀ a ∈ T, 1 ≤ a) {i 
   have hemod : e < i + 1 := by rw [he]; split_ifs <;> omega
   rw [Nat.add_mul_mod_self_left, Nat.mod_eq_of_lt hemod]
 
+/-- **Leading digit.** If `n < (M+1)!` then the top digit is just the quotient:
+`d_M(n) = ⌊n / M!⌋` (no `mod` truncation, since `n/M! < M+1`). -/
+theorem factDigit_top {n M : ℕ} (h : n < (M + 1)!) : factDigit M n = n / M ! := by
+  have h2 : n / M ! < M + 1 := by
+    rw [Nat.div_lt_iff_lt_mul (Nat.factorial_pos M), ← Nat.factorial_succ]; exact h
+  rw [factDigit]; exact Nat.mod_eq_of_lt h2
+
+/-- If `n` reaches `2·M!` (but stays below `(M+1)!`), its top digit is `≥ 2`. The size-sandwich
+side of the residual: `n ∉ [M!, 2M!)` ⟹ leading digit `≥ 2` ⟹ not all digits `≤ 1`. -/
+theorem two_le_factDigit_top {n M : ℕ} (h : n < (M + 1)!) (h2 : 2 * M ! ≤ n) :
+    2 ≤ factDigit M n := by
+  rw [factDigit_top h, Nat.le_div_iff_mul_le (Nat.factorial_pos M)]
+  omega
+
 /-- A sum of distinct factorials (positive indices) has all digits `≤ 1`. -/
 theorem factDigit_factSum_le_one (T : Finset ℕ) (hT : ∀ a ∈ T, 1 ≤ a) {i : ℕ} (hi : 1 ≤ i) :
     factDigit i (∑ a ∈ T, a !) ≤ 1 := by
