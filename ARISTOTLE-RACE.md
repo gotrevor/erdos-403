@@ -43,3 +43,13 @@ aristotle download <uuid> --destination /tmp/sol.tar.gz && tar -xzf /tmp/sol.tar
   the **doubling-transducer invariant** (RECONSTRUCTION.md, Session-6 note): find the invariant
   on `2^m ↦ 2^(m+1)` FNS-digit evolution that forbids returning to all-digits-`≤1` for odd
   `m ≥ 9`. Do **not** fabricate a carry argument.
+
+---
+
+## ⚑ RESOLUTION (2026-05-31) — race superseded, problem SOLVED without it
+
+Both Aristotle jobs were **cancelled**: while they worked the (hard, lost) 2-adic carry kernel, a
+direct computation revealed Erdős #403 is closed by a **fixed modulus `12!`** in the factorial
+number system — the carry estimate was never needed. See `SOLVED.md`. Both `erdos_403_finite` and
+`erdos_403_sharp` are now sorry-free in `Sharp.lean`. The `cascade_crux` sorry and its whole chain
+were deleted from `Basic.lean`.

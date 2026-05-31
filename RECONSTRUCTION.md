@@ -1,3 +1,16 @@
+> **⚑ SOLVED 2026-05-31 — and the central premise of this doc was WRONG.**
+> Erdős #403 is now **fully proven, sorry-free** (`Erdos403.erdos_403_finite`,
+> `Erdos403.erdos_403_sharp`, in `Sharp.lean`). The result did **not** require Lin's lost carry
+> estimate. The "no fixed modulus closes the kernel" claim below (Session 6) was a *heuristic
+> extrapolation error*: the smallest factorial-base (FNS) offending index of `2^m` climbs
+> `5 → 7 → 8 → 11` and was *assumed* unbounded (random-digit model `P ≈ 2^K/(K+1)!`). Direct
+> computation (verified three ways) shows it **caps at 11** — so a single **fixed modulus `12!`**
+> (period 1620, `ord_{467775}(2)=1620`) closes the whole problem: every `m ≥ 8` has an FNS digit
+> `≥ 2` at an index `≤ 11`, in both `2^m` and `2^m−1`, killing `factSum S = 2^m` via the existing
+> `factDigit_factSum_le_one` bridge. The entire 2-adic carry machinery (`cascade_crux`/`cascade_two`/
+> `tied_*`) was deleted as unnecessary. See `SOLVED.md` and `Sharp.lean` Phase C. The carry analysis
+> below is preserved as the (valid) reasoning that *would* have worked but wasn't needed.
+
 # Erdős #403 — proof reconstruction & formalization plan
 
 Lin's and Frankl's 1976 proofs are unpublished/lost (see `HANDOFF.md`), so this is a from-scratch
