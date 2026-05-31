@@ -202,6 +202,52 @@ theorem v2_factSum_of_unique_min {S : Finset ℕ} (h : S.Nonempty)
     exact hnotdvd_sum ((padicValNat_dvd_iff_le (p := 2) hpos).mpr (by omega))
   omega
 
+/-- **Descent at the top (the KEY EQUATION).** If `factSum S = 2^m` with `m` exceeding the top
+factorial's valuation `v₂(M!) = M − s₂ M`, then stripping the top index leaves a sum whose valuation
+is *exactly* `v₂(M!)`. Reason: `2^m = M! + R` with `v₂(M!) < m = v₂(2^m)`, so the top term `M!` and
+the remainder `R = factSum (S.erase M)` must share valuation (and cancel up to `m`). This relates the
+top index `M` to the bottom cancellation structure — the engine of the carry cascade. Mirrors the
+divisibility sandwich of `v2_factSum_of_unique_min`. -/
+theorem v2_factSum_erase_max {S : Finset ℕ} (h : S.Nonempty) {m : ℕ}
+    (hpow : factSum S = 2 ^ m) (hlt : padicValNat 2 ((S.max' h)!) < m) :
+    padicValNat 2 (factSum (S.erase (S.max' h))) = padicValNat 2 ((S.max' h)!) := by
+  set M := S.max' h with hM
+  set k := padicValNat 2 (M !) with hk
+  -- factSum S = M! + R, with R := factSum (S.erase M)
+  have hsplit : factSum S = M ! + factSum (S.erase M) := by
+    rw [factSum, factSum]; exact (Finset.add_sum_erase S _ (S.max'_mem h)).symm
+  -- R ≠ 0: else factSum S = M! = 2^m forces v₂(M!) = m, contradicting hlt.
+  have hRpos : factSum (S.erase M) ≠ 0 := by
+    intro h0
+    rw [h0, Nat.add_zero, hpow] at hsplit
+    rw [← hsplit, padicValNat.prime_pow] at hk
+    omega
+  -- the two halves of the sandwich for M!
+  have hdvd_M : (2 : ℕ) ^ k ∣ M ! :=
+    (padicValNat_dvd_iff_le (p := 2) (Nat.factorial_ne_zero M)).mpr le_rfl
+  have hnotdvd_M : ¬ (2 : ℕ) ^ (k + 1) ∣ M ! := by
+    rw [padicValNat_dvd_iff_le (p := 2) (Nat.factorial_ne_zero M)]; omega
+  -- 2^k and 2^{k+1} divide 2^m (since k < m)
+  have hdvd_pow_k : (2 : ℕ) ^ k ∣ 2 ^ m := pow_dvd_pow 2 (by omega)
+  have hdvd_pow_k1 : (2 : ℕ) ^ (k + 1) ∣ 2 ^ m := pow_dvd_pow 2 (by omega)
+  -- hence 2^k ∣ R but 2^{k+1} ∤ R
+  have hdvd_R : (2 : ℕ) ^ k ∣ factSum (S.erase M) := by
+    have : (2 : ℕ) ^ k ∣ factSum S := hpow ▸ hdvd_pow_k
+    rw [hsplit] at this
+    exact (Nat.dvd_add_right hdvd_M).mp this
+  have hnotdvd_R : ¬ (2 : ℕ) ^ (k + 1) ∣ factSum (S.erase M) := by
+    intro hc
+    have hfs : (2 : ℕ) ^ (k + 1) ∣ factSum S := hpow ▸ hdvd_pow_k1
+    rw [hsplit] at hfs
+    exact hnotdvd_M ((Nat.dvd_add_iff_left hc).mpr hfs)
+  -- conclude v₂(R) = k
+  have hle : k ≤ padicValNat 2 (factSum (S.erase M)) :=
+    (padicValNat_dvd_iff_le (p := 2) hRpos).mp hdvd_R
+  have hlt2 : padicValNat 2 (factSum (S.erase M)) < k + 1 := by
+    by_contra hc
+    exact hnotdvd_R ((padicValNat_dvd_iff_le (p := 2) hRpos).mpr (by omega))
+  omega
+
 /-! ## Step 4 — the unique-minimum case is bounded
 
 Combining the size sandwich (`M! ≤ factSum`) with Step 3 (`v₂(factSum) = v₂(a₀!) ≤ a₀ ≤ M`):
