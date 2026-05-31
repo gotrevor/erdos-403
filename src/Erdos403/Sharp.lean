@@ -59,4 +59,23 @@ theorem factSum_ne_of_even {m : ℕ} (he : Even m) (hm : 4 ≤ m) (S : Finset �
   · rw [factDigit_three_two_pow_even he hm]
   · rw [factDigit_three_two_pow_sub_one_even he hm]
 
+/-- **Phase C-7a (leading-digit kill).** If `2·M! < 2^m < (M+1)!` — i.e. `2^m` reaches *twice* its
+leading factorial `M!` without spilling into the next — then the top factorial digit of *both*
+`2^m` and `2^m − 1` is `≥ 2` (`2^m − 1` shares the same leading index and still clears `2·M!`,
+strictly, since `2^m` is a power of two). So `not_factSum_of_digits` fires. This bankable sub-case
+kills every odd `m ≥ 9` whose `2^m` lands in the upper half `[2·M!, (M+1)!)`; the residual nut is
+the lower half `[M!, 2·M!)`. -/
+theorem factSum_ne_of_leading_two {m M : ℕ} (hM : 2 ^ m < (M + 1)!) (h2 : 2 * M ! < 2 ^ m)
+    (S : Finset ℕ) : factSum S ≠ 2 ^ m := by
+  -- `2·M! < 2^m < (M+1)! = (M+1)·M!` forces `M ≥ 2`, so `M` is a valid positive digit index.
+  have hM1 : 1 ≤ M := by
+    by_contra h
+    have hle : (M + 1)! ≤ 2 * M ! := by
+      interval_cases M
+      decide
+    omega
+  refine not_factSum_of_digits (2 ^ m) ⟨M, hM1, ?_⟩ ⟨M, hM1, ?_⟩ S
+  · exact two_le_factDigit_top hM (by omega)
+  · exact two_le_factDigit_top (by omega) (by omega)
+
 end Erdos403
