@@ -71,6 +71,7 @@ Lean toolchain `v4.29.1`, mathlib `v4.29.1` (pinned in `lean-toolchain` / `lake-
 | `SOLVED.md`                 | how the proof works + the kernel-purity journey |
 | `RECONSTRUCTION.md`         | the original 2-adic reconstruction plan (superseded by the FNS proof) |
 | `LITERATURE-FINDINGS.md`    | why the original proofs are lost (see below) |
+| `404-NOTES.md`              | investigation notes on the sibling problem [#404](https://www.erdosproblems.com/404) (open) |
 | `history/`                  | session-by-session development handoffs (kept as a record) |
 
 ## Provenance & honesty 📝

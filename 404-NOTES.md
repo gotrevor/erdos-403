@@ -154,6 +154,6 @@ dead-ends and why it is open rather than secretly easy.
 ### Caution carried over from #403
 
 Do not trust "`f` is bounded" or "the climb can't continue" until the search has **computed past the
-threshold** — this is exactly the `heuristic-negative-needs-compute-past-threshold` lesson that solved
-#403 (the "no fixed modulus" belief was a heuristic-extrapolation error). `254` is the warning that
+threshold** — exactly the lesson that solved #403 (the "no fixed modulus" belief turned out to be a
+heuristic-extrapolation error). `254` is the warning that
 "finite" can be large and irregular with no obvious cap. Reproduce and extend the computation *first*.
