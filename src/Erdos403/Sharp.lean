@@ -107,7 +107,40 @@ theorem factDigit_mod_twelve {i : ℕ} (hi : i ≤ 11) (n : ℕ) :
   have hdvd : ((i + 1)! : ℕ) ∣ (12)! := Nat.factorial_dvd_factorial (by omega)
   rw [factDigit_mod i n, factDigit_mod i (n % (12)!), Nat.mod_mod_of_dvd n hdvd]
 
-private theorem two_pow_1620_odd : (2 : ℕ) ^ 1620 % 467775 = 1 := by native_decide
+/-- `2^1620 ≡ 1 (mod 467775)`, proved **kernel-pure via CRT** (no `native_decide`).
+`467775 = 3^5 · 5^2 · 7 · 11 = 243 · 25 · 7 · 11` (pairwise coprime); `ord(2)` modulo each
+prime power is `162, 20, 3, 10`, each dividing `1620`. The four small `decide`s are kernel
+computations; the combine is `Nat.modEq_and_modEq_iff_modEq_mul`. -/
+private theorem two_pow_1620_odd : (2 : ℕ) ^ 1620 % 467775 = 1 := by
+  have h243 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 243] := by
+    have b : (2 : ℕ) ^ 162 ≡ 1 [MOD 243] := by decide
+    calc (2 : ℕ) ^ 1620 = (2 ^ 162) ^ 10 := by rw [← pow_mul]
+      _ ≡ 1 ^ 10 [MOD 243] := b.pow 10
+      _ = 1 := one_pow 10
+  have h25 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 25] := by
+    have b : (2 : ℕ) ^ 20 ≡ 1 [MOD 25] := by decide
+    calc (2 : ℕ) ^ 1620 = (2 ^ 20) ^ 81 := by rw [← pow_mul]
+      _ ≡ 1 ^ 81 [MOD 25] := b.pow 81
+      _ = 1 := one_pow 81
+  have h7 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 7] := by
+    have b : (2 : ℕ) ^ 3 ≡ 1 [MOD 7] := by decide
+    calc (2 : ℕ) ^ 1620 = (2 ^ 3) ^ 540 := by rw [← pow_mul]
+      _ ≡ 1 ^ 540 [MOD 7] := b.pow 540
+      _ = 1 := one_pow 540
+  have h11 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 11] := by
+    have b : (2 : ℕ) ^ 10 ≡ 1 [MOD 11] := by decide
+    calc (2 : ℕ) ^ 1620 = (2 ^ 10) ^ 162 := by rw [← pow_mul]
+      _ ≡ 1 ^ 162 [MOD 11] := b.pow 162
+      _ = 1 := one_pow 162
+  have c1 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 243 * 25] :=
+    (Nat.modEq_and_modEq_iff_modEq_mul (by decide)).mp ⟨h243, h25⟩
+  have c2 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 243 * 25 * 7] :=
+    (Nat.modEq_and_modEq_iff_modEq_mul (by decide)).mp ⟨c1, h7⟩
+  have c3 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 243 * 25 * 7 * 11] :=
+    (Nat.modEq_and_modEq_iff_modEq_mul (by decide)).mp ⟨c2, h11⟩
+  rw [show (243 * 25 * 7 * 11 : ℕ) = 467775 by norm_num] at c3
+  -- `c3 : 2^1620 % 467775 = 1 % 467775`; `1 % 467775` is defeq `1`.
+  exact c3
 
 /-- `2^(10+k) mod 12! = 1024 · (2^k mod 467775)` (since `12! = 1024 · 467775`). -/
 private theorem two_pow_split (k : ℕ) : (2 : ℕ) ^ (10 + k) % (12)! = 1024 * (2 ^ k % 467775) := by

@@ -31,9 +31,9 @@ fi
 
 # Locate the Lean project (lakefile at root, or in a lean/ subdir), ignoring
 # the .lake/ package cache copies.
-if ls lakefile.toml lakefile.lean >/dev/null 2>&1; then
+if [ -f lakefile.toml ] || [ -f lakefile.lean ]; then
   lean_dir="."
-elif ls lean/lakefile.toml lean/lakefile.lean >/dev/null 2>&1; then
+elif [ -f lean/lakefile.toml ] || [ -f lean/lakefile.lean ]; then
   lean_dir="lean"
 else
   echo "[pre-commit] Could not locate a lakefile — skipping build gate." >&2
