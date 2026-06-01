@@ -174,16 +174,98 @@ private theorem two_pow_reduce {m : ℕ} (hm : 10 ≤ m) :
   rw [this]
 
 -- Base window (one full period): every `m ∈ [10, 1630)` has an offending factorial digit of
--- `2^m` (resp. `2^m - 1`) at an index in `[1, 11]`. Verified by `native_decide`.
-set_option maxRecDepth 8000 in
+-- `2^m` (resp. `2^m - 1`) at an index in `[1, 11]`. Proved **kernel-pure** (no `native_decide`):
+-- a flat `decide` over the 1620 residues `2^m mod 12!`, kept below `12!` via `r ↦ 2r mod 12!`.
+
+/-- `offendingB r`: does `r` carry a factorial-base digit `≥ 2` at some index `1..11`? -/
+private def offendingB (r : ℕ) : Bool := (List.range 11).any (fun j => 2 ≤ factDigit (j + 1) r)
+
+/-- The residue-advance map `r ↦ (2r) mod 12!`. -/
+private def adv (r : ℕ) : ℕ := (2 * r) % 479001600
+
+/-- Flat fold: `offendingB` holds on the next `fuel` residues starting from `r`. -/
+private def checkAll : ℕ → ℕ → Bool
+  | 0,        _ => true
+  | fuel + 1, r => offendingB r && checkAll fuel (adv r)
+
+/-- Sub-companion: `offendingB` on `r - 1`, encoded as `(r + 12! - 1) mod 12!`. -/
+private def checkAllSub : ℕ → ℕ → Bool
+  | 0,        _ => true
+  | fuel + 1, r => offendingB ((r + 479001599) % 479001600) && checkAllSub fuel (adv r)
+
+/-- `offendingB r = true` with `n ≡ r (mod 12!)` yields the digit witness for `n`
+(using that `factDigit i` for `i ≤ 11` only sees `n mod 12!`). -/
+private theorem offendingB_to_exists {n r : ℕ} (hr : n % 479001600 = r)
+    (h : offendingB r = true) : ∃ i ∈ Finset.Icc 1 11, 2 ≤ factDigit i n := by
+  unfold offendingB at h
+  rw [List.any_eq_true] at h
+  obtain ⟨j, hjm, hj⟩ := h
+  rw [List.mem_range] at hjm
+  rw [decide_eq_true_eq] at hj
+  refine ⟨j + 1, Finset.mem_Icc.mpr ⟨by omega, by omega⟩, ?_⟩
+  rw [factDigit_mod_twelve (by omega : j + 1 ≤ 11),
+      (by decide : Nat.factorial 12 = 479001600), hr]
+  exact hj
+
+/-- The `k`-th advance of `2^10 mod 12!` is `2^(10+k) mod 12!`. -/
+private theorem res_pow (k : ℕ) : adv^[k] 1024 = 2 ^ (10 + k) % 479001600 := by
+  induction k with
+  | zero => rfl
+  | succ n ih =>
+    rw [Function.iterate_succ_apply', ih, adv,
+        show (2 : ℕ) ^ (10 + (n + 1)) = 2 * 2 ^ (10 + n) from by ring,
+        Nat.mul_mod 2 (2 ^ (10 + n)) 479001600]
+
+private theorem checkAll_true {fuel r : ℕ} (h : checkAll fuel r = true) :
+    ∀ k, k < fuel → offendingB (adv^[k] r) = true := by
+  induction fuel generalizing r with
+  | zero => intro k hk; omega
+  | succ n ih =>
+    rw [checkAll, Bool.and_eq_true] at h
+    intro k hk
+    cases k with
+    | zero => simpa using h.1
+    | succ k => rw [Function.iterate_succ_apply]; exact ih h.2 k (by omega)
+
+private theorem checkAllSub_true {fuel r : ℕ} (h : checkAllSub fuel r = true) :
+    ∀ k, k < fuel → offendingB ((adv^[k] r + 479001599) % 479001600) = true := by
+  induction fuel generalizing r with
+  | zero => intro k hk; omega
+  | succ n ih =>
+    rw [checkAllSub, Bool.and_eq_true] at h
+    intro k hk
+    cases k with
+    | zero => simpa using h.1
+    | succ k => rw [Function.iterate_succ_apply]; exact ih h.2 k (by omega)
+
+/-- `(n - 1) mod 12! = (n mod 12! + (12!-1)) mod 12!` for `n ≥ 1`. -/
+private theorem sub_res {n : ℕ} (hn : 1 ≤ n) :
+    (n - 1) % 479001600 = (n % 479001600 + 479001599) % 479001600 := by
+  conv_lhs => rw [← Nat.add_mod_right (n - 1) 479001600]
+  rw [show n - 1 + 479001600 = n + 479001599 from by omega, Nat.add_mod,
+      Nat.mod_eq_of_lt (by norm_num : (479001599 : ℕ) < 479001600)]
+
+set_option maxRecDepth 4000 in
 private theorem base_offending :
     ∀ m ∈ Finset.Ico 10 1630, ∃ i ∈ Finset.Icc 1 11, 2 ≤ factDigit i (2 ^ m) := by
-  native_decide
+  have key : checkAll 1620 1024 = true := by decide
+  intro m hm
+  rw [Finset.mem_Ico] at hm
+  obtain ⟨k, rfl⟩ : ∃ k, m = 10 + k := ⟨m - 10, by omega⟩
+  have ho := checkAll_true key k (by omega)
+  rw [res_pow] at ho
+  exact offendingB_to_exists rfl ho
 
-set_option maxRecDepth 8000 in
+set_option maxRecDepth 4000 in
 private theorem base_offending_sub :
     ∀ m ∈ Finset.Ico 10 1630, ∃ i ∈ Finset.Icc 1 11, 2 ≤ factDigit i (2 ^ m - 1) := by
-  native_decide
+  have key : checkAllSub 1620 1024 = true := by decide
+  intro m hm
+  rw [Finset.mem_Ico] at hm
+  obtain ⟨k, rfl⟩ : ∃ k, m = 10 + k := ⟨m - 10, by omega⟩
+  have ho := checkAllSub_true key k (by omega)
+  rw [res_pow, ← sub_res Nat.one_le_two_pow] at ho
+  exact offendingB_to_exists rfl ho
 
 /-- **Fixed-modulus kill (heart of Phase C).** For every `m ≥ 8`, `2^m` carries a factorial-base
 digit `≥ 2` at some positive index — so `2^m` is not a sum of distinct factorials. -/
