@@ -8,11 +8,14 @@ import Erdos403.FactBase
 Using the factorial number system (`FactBase`), `factSum S = 2^m` is impossible once `2^m` and
 `2^m − 1` both carry a factorial digit `≥ 2` (`not_factSum_of_digits`).
 
-* **Phase B (this file, done):** `m` even `≥ 4` is killed cleanly — `2^m ≡ 16 (mod 24)` forces the
+* **Phase B (done):** `m` even `≥ 4` is killed cleanly — `2^m ≡ 16 (mod 24)` forces the
   `3!`-digit of *both* `2^m` and `2^m − 1` to be `2` (and `3! = 6` has no factorial degeneracy, so
   the `0!` carry cannot fix it).
-* **Phase C (todo):** `m` odd `≥ 9` — the residual Lin kernel (a middle digit `≥ 2`).
-* **Phase D (todo):** assemble `erdos_403_sharp` (`decide` the small `m`).
+* **Phase C (done):** `m` ≥ 8 is killed by a *fixed* modulus `12!` — every such `2^m` (and `2^m − 1`)
+  carries a factorial digit `≥ 2` at some index `≤ 11`, a finite check over the period-`1620` cycle
+  of `2^m mod 12!`, discharged by a kernel-pure `decide`.
+* **Phase D (done):** `erdos_403_sharp` and `erdos_403_finite` are assembled below (`decide` the
+  small `m`). Both are `sorry`-free and depend only on `[propext, Classical.choice, Quot.sound]`.
 -/
 
 namespace Erdos403
@@ -88,7 +91,8 @@ to grow without bound; in fact it caps at `11`.
 
 Mechanism: `factDigit i n` depends only on `n mod (i+1)!`, hence for `i ≤ 11` only on `n mod 12!`;
 and `2^m mod 12!` is periodic in `m` with period `1620` (`ord_{467775}(2) = 1620`, where
-`12! = 1024 · 467775`). So the claim reduces to a finite `native_decide` over one period. -/
+`12! = 1024 · 467775`). So the claim reduces to a finite check over one period, discharged by a
+kernel-pure `decide` over a residue fold (no `native_decide`). -/
 
 /-- `factDigit i n` depends only on `n` modulo `(i+1)!`. -/
 theorem factDigit_mod (i n : ℕ) : factDigit i n = factDigit i (n % (i + 1)!) := by

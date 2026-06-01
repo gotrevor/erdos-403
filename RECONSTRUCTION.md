@@ -228,7 +228,11 @@ odd `m ≥ 9`.
   hard wall").
 - Step 7 sharp `m ≤ 7`: ~50%, contingent on 5 + a factorial-base layer (may need building in mathlib).
 
-## Pointers
-KB: `core/projects/erdos-403` (TODO add), [[binomial-thresholds]] (Legendre toolbox + the
-formalized-flag footgun), [[erdos-formalization-hunt]] (why #403 was chosen), [[collatz-cryptid]]
-(Shen Lin = Busy Beaver, the same person whose memo we're reconstructing).
+## Note
+
+This document records the original *reconstruction plan* and the 2-adic valuation approach, written
+while the problem was still open to us. The final proof took a different, simpler route (a fixed
+modulus `12!` in the factorial number system; see `SOLVED.md`), so the confidence estimates and "open
+gap" framing above are historical. A nice coincidence worth recording: Shen Lin, author of the lost
+1976 memo this reconstructs, is the same Shen Lin of the Busy Beaver (Lin–Rado) and Lin–Kernighan
+work.

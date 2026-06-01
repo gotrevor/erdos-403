@@ -27,8 +27,8 @@ for every `m ≥ 8`, both `2^m` and `2^m − 1` have an FNS digit `≥ 2` at som
 
 Why this is a *fixed-modulus* fact: `factDigit i n` depends only on `n mod (i+1)!`, hence for
 `i ≤ 11` only on `n mod 12!`; and `2^m mod 12!` is periodic in `m` with period **1620**
-(`12! = 1024 · 467775`, `ord_{467775}(2) = 1620`). So the claim is a finite `native_decide` over one
-period `[10, 1630)` (+ `m = 8, 9`). The Lean proof (`Sharp.lean`, Phase C):
+(`12! = 1024 · 467775`, `ord_{467775}(2) = 1620`). So the claim is a finite check over one period
+`[10, 1630)` (+ `m = 8, 9`), discharged by a kernel-pure `decide`. The Lean proof (`Sharp.lean`, Phase C):
 
 1. `factDigit_mod` / `factDigit_mod_twelve` — digit `i ≤ 11` depends only on `n mod 12!`.
 2. `two_pow_1620_odd` (`2^1620 ≡ 1 mod 467775`, **kernel-pure CRT proof**) → `two_pow_period` →

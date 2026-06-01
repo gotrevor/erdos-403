@@ -62,9 +62,10 @@ Lean toolchain `v4.29.1`, mathlib `v4.29.1` (pinned in `lean-toolchain` / `lake-
 
 | Path | Contents |
 |------|----------|
-| `src/Erdos403/Basic.lean`   | `factSum`, size sandwich, 2-adic (Legendre) helpers, `witness` |
+| `src/Erdos403/Basic.lean`   | `factSum`, the `witness`, the size sandwich |
 | `src/Erdos403/FactBase.lean`| factorial-number-system digit infrastructure (`factDigit`) |
 | `src/Erdos403/Sharp.lean`   | the fixed-modulus kill + both headline theorems |
+| `src/Erdos403/Superseded.lean`| earlier, unused 2-adic approach + FNS reconstruction lemmas (not part of the proof) |
 | `Audit.lean`                | `#print axioms` regression check |
 | `SOLVED.md`                 | how the proof works + the kernel-purity journey |
 | `RECONSTRUCTION.md`         | the full reconstructed argument |
