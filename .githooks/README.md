@@ -7,6 +7,6 @@ a no-op (seconds) when the project is already green.
 Enabled per-clone via `core.hooksPath` (see below). Bypass a single commit with
 `git commit --no-verify` (e.g. notes-only commits) — never to dodge a real failure.
 
-Fresh clone / lean-yolo-box setup:
+Fresh clone setup:
 
     git config core.hooksPath .githooks

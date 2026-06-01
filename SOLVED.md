@@ -62,7 +62,7 @@ never implied the **power-of-two** case needs an unbounded modulus — the two w
 
 ## Provenance / honesty
 
-The finite checks are independently confirmed by `tools`-style Python (`/tmp/fns*.py` during the
-session): the complete solution list, the period 1620, the index-11 cap for both `2^m` and `2^m−1`.
+The finite checks are independently confirmed by an external brute-force Python script: the complete
+solution list, the period 1620, and the index-11 cap for both `2^m` and `2^m−1`.
 The headline theorems are sorry-free and depend on **only the standard three axioms**
 (`propext`, `Classical.choice`, `Quot.sound`) — no `native_decide`, no compiler-trust axiom.

@@ -1,6 +1,10 @@
-# Literature findings — Erdős #403 (host session, internet access)
+# Literature findings — Erdős #403: the original proofs are lost
 
-**Date:** 2026-05-31. **For:** the lean-yolo-box session. **Re:** `LITERATURE-REQUEST.md`.
+**Date:** 2026-05-31. This records the literature search establishing that the original proofs are
+unrecoverable. It was written during the reconstruction effort and informed the 2-adic valuation
+approach (now preserved, superseded, in `Erdos403.Superseded`); the final proof took a different,
+simpler route — the factorial number system with a fixed modulus `12!` (see `SOLVED.md`). The
+forward-looking "reconstruction kernel" language below is therefore historical.
 
 ## TL;DR (the honest bottom line)
 
@@ -32,8 +36,7 @@ search produced three things that materially help:
 
 - The page **reproduces no proof** and links to none. The forum thread (`/forum/thread/403`) has
   **0 comments**.
-- The two proof citations, **transcribed verbatim from the [ErGr80] reference list** (Trevor loaded the
-  bibliography page):
+- The two proof citations, **transcribed verbatim from the [ErGr80] reference list**:
   - **[Lin (76)]** — *"On two problems of Erdős concerning sums of distinct factorials.* Bell
     Laboratories internal memorandum (1976)." (Dept. of Math., Sonoma State Coll[ege].)
   - **[Frank (76)]** — "FRANKL, P. *(Personal communication)."*
@@ -42,7 +45,7 @@ search produced three things that materially help:
   findable paper, but a proof that was *never written down for publication*. (The request's guessed memo
   title was exactly correct.) Search is closed at ~99%.
 
-### [ErGr80] p.79 — primary source, transcribed verbatim (Trevor loaded the scanned page)
+### [ErGr80] p.79 — primary source, transcribed verbatim from the scanned page
 
 > Burr and Erdős … asked whether ∑ᵢ aᵢ! = 2^m, a₁ < a₂ < … has only finitely many solutions. The
 > largest one seemed to be 2⁷ = 2! + 3! + 5!.
@@ -60,9 +63,7 @@ search produced three things that materially help:
    absolute constant once `a₁` is fixed.** If your `cascade` can be re-anchored on the minimum index,
    that's closer to Lin's grain. (This `f(a₁,p)` question is Erdős #404 — the "see also [404]".)
 2. The book reproduces **no proof** — it only states the result with the two 1976 citations. The proof
-   is in `[Lin (76)]` (lost memo) / `[Frank (76)]`. The exact reference-list strings for `[Frank (76)]`
-   and `[Lin (76)]` are on a later page of the book if you want them (Trevor can load the bibliography
-   page) — but `[Lin (76)]` is the unpublished memo regardless.
+   is in `[Lin (76)]` (lost memo) / `[Frank (76)]` — `[Lin (76)]` being the unpublished memo regardless.
 
 ## Sources checked (found / not found)
 
@@ -71,7 +72,7 @@ search produced three things that materially help:
 | erdosproblems.com/403 + forum/thread/403 | ✅ statement & attribution (above); ❌ no proof, 0 comments |
 | Peter Frankl's own publication list (users.renyi.hu/~pfrankl/FPpubl.html) | ❌ **no 1976 factorial paper** — confirms his proof was never published |
 | MathWorld "Factorial Sums" | ❌ covers only *square*-valued distinct-factorial sums (A014597), not powers of 2 |
-| Erdős–Graham 1980 book, **p.79** (mathweb.ucsd.edu/~ronspubs/80_11_number_theory.pdf) | ✅ **transcribed verbatim** (Trevor screenshotted the scanned page; PDF is image-only, pdftotext→empty). Confirms refs `[Frank (76)]`+`[Lin (76)]`, the `f(a₁,p)` framing, and that it reproduces no proof. See quote above. |
+| Erdős–Graham 1980 book, **p.79** (mathweb.ucsd.edu/~ronspubs/80_11_number_theory.pdf) | ✅ **transcribed verbatim** from the scanned page (the PDF is image-only). Confirms refs `[Frank (76)]`+`[Lin (76)]`, the `f(a₁,p)` framing, and that it reproduces no proof. See quote above. |
 | arXiv sweep: 1611.05618 (withdrawn), 2511.15850 (digital sums of factorials), 2509.18860, math/0702010 "Factorials as sums", etc. | ❌ none reproduce or cite Lin's argument; the v₂/s₂ machinery papers don't touch #403 |
 | OEIS, Google Scholar/zbMATH-style queries, MathOverflow/StackExchange | ❌ no proof, no reconstruction, no useful sketch |
 
@@ -79,7 +80,7 @@ search produced three things that materially help:
 and Turán, J. Number Theory 8 (1976)") — that's a **different** Lin paper; do not trust it. The small
 summarizer model hallucinated. The only reliable attribution is erdosproblems' `[Li76]`.
 
-## Computational verification (my script, `~/personal/tools/sandbox/erdos403_check.py`, verified output)
+## Computational verification (independent brute-force check)
 
 **Complete list of powers of 2 that are sums of distinct factorials** (brute force, indices 1..14):
 
@@ -130,7 +131,7 @@ solutions verbatim, all verified by my script**: `1!=3⁰`, `1!+2!=3`, `1!+2!+3!
 - **Lin's contribution** is exactly bounding the maximum carry-lift to the absolute constant **254**.
   That number is not derivable from the literature — it's the hand computation in the lost memo.
 
-## Recommendation for the box
+## Assessment of the (superseded) 2-adic approach
 
 1. **Consider re-aiming at an absolute-constant bound** (Lin's shape: `v₂(Σ distinct a!) ≤ C` for sums
    containing 2!), which *implies* finiteness directly (`m ≤ C ⟹ M! ≤ 2^C ⟹ M bounded ⟹ finite
@@ -140,9 +141,3 @@ solutions verbatim, all verified by my script**: `1!=3⁰`, `1!+2!=3`, `1!+2!+3!
    argument has to track `s₂(M)` rather than a constant.
 3. Either way the missing math is the **carry-propagation bound across equal-v₂ factorial clusters**.
    The literature does not contain it. This is a genuine (small) reconstruction, not a lookup.
-
-## Saved artifacts (host machine)
-
-- `~/Downloads/erdos403-refs/403.html` — erdosproblems #403 page (curl'd; WebFetch is 403-blocked there)
-- `~/Downloads/erdos403-refs/erdos-graham-1980.pdf` — the [ErGr80] book (scanned, no text layer)
-- `~/personal/tools/sandbox/erdos403_check.py` — the verification script above

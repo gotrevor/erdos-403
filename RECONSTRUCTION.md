@@ -82,7 +82,7 @@ cascade as it meets them. Sanity: `{2,3} → 8 = 2³`; `{2,3,5} → 128 = 2⁷`.
 - **(Sharp, Lin):** if `2 ∈ S` then `v₂(factSum S) ≤ 254` (an *absolute* bound — the carry cannot
   cascade past 254 once anchored by the low term `2!`). Gives `m ≤ 254 ⟹ M ≤ 57`.
 
-**Two routes to attack the ceiling** (this is the research kernel — and the natural Aristotle race):
+**Two routes to attack the ceiling** (this was the research kernel of the 2-adic approach):
 1. **`a₀!·K` recursion.** `factSum S = a₀!·K`, `K = 1 + ∑_{a>a₀} a!/a₀!`; `v₂(factSum)=v₂(a₀!)+v₂(K)`.
    In the tied-pair case `K` is even; peel one factor of 2 and recurse on a structurally smaller
    "1 + sum of ascending products," tracking that the recursion depth (hence total carry) is bounded.
@@ -189,7 +189,7 @@ forces `∑_{a≥6} a!/8 = 4·(odd)`, recursing again — and Lin's analysis sho
 `128`. **Termination of this cascade is the irreducible Lin/Frankl kernel** (`tied_carry_ceiling`);
 there is no cheap crude bound — `v₂(factSum)` is genuinely unbounded over general tied pairs
 (`{2k,2k+1}` gives `v₂ ≈ 2k`), and only the odd-part-`=1` constraint tames it. This is the clean
-self-contained target for the Aristotle race: *"the cascade `1 + ∑_{a≥4} a!/8 = 2^{m-3}` has no
+self-contained target this approach aimed at: *"the cascade `1 + ∑_{a≥4} a!/8 = 2^{m-3}` has no
 solution with `m > 7`."*
 
 ### Session 6 (2026-05-31) — kernel narrowed to **odd `m`**; FNS structure mapped
