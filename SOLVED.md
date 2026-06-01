@@ -9,9 +9,12 @@ Both headline theorems are proven with **no `sorry`**, in `src/Erdos403/Sharp.le
 - `Erdos403.erdos_403_finite : {S : Finset ℕ | ∃ m, factSum S = 2^m}.Finite`
 - `Erdos403.erdos_403_sharp : factSum S = 2^m → m ≤ 7`  (sharp; `2⁷ = 2!+3!+5!` attained)
 
-`#print axioms` (both): `propext`, `Classical.choice`, `Quot.sound`, plus the `native_decide`
-trust axioms (`…_native.native_decide.ax…`). **No `sorryAx`.** (Kernel `decide` is infeasible here —
-it would reduce `2^1629` — so `native_decide` is used, as the repo already did for `witness`.)
+`#print axioms` (both): **exactly `[propext, Classical.choice, Quot.sound]` — nothing else.**
+No `sorryAx`, **no `native_decide` trust axioms**. The proof is fully **kernel-pure** (passes
+`lean4checker`, mathlib-admissible). The original solve (commit `aedfc35`) used `native_decide`;
+a later trust-elimination pass (7 → 3 → 2 → 0 axioms, commits `2eadf8e`/`eb0fe97`/`756c62f`)
+replaced every `native_decide` with kernel `decide` over a residue fold + a CRT argument. See
+`history/HANDOFF-2026-06-01-0133.md` for that journey.
 
 ## How — the fixed modulus the literature/prior sessions thought impossible
 
@@ -28,9 +31,11 @@ Why this is a *fixed-modulus* fact: `factDigit i n` depends only on `n mod (i+1)
 period `[10, 1630)` (+ `m = 8, 9`). The Lean proof (`Sharp.lean`, Phase C):
 
 1. `factDigit_mod` / `factDigit_mod_twelve` — digit `i ≤ 11` depends only on `n mod 12!`.
-2. `two_pow_1620_odd` (`2^1620 ≡ 1 mod 467775`, `native_decide`) → `two_pow_period` → `two_pow_drop`
-   → `two_pow_reduce` (any `m ≥ 10` ↦ base window mod 12!).
-3. `base_offending`, `base_offending_sub` — the period exhaustion (`native_decide`, `maxRecDepth 8000`).
+2. `two_pow_1620_odd` (`2^1620 ≡ 1 mod 467775`, **kernel-pure CRT proof**) → `two_pow_period` →
+   `two_pow_drop` → `two_pow_reduce` (any `m ≥ 10` ↦ base window mod 12!).
+3. `base_offending`, `base_offending_sub` — the period exhaustion, as a **kernel-pure `decide`**
+   over a `List`/`Nat` residue fold (`adv r = (2r) % 12!`, proved equal to the true residue by
+   `res_pow`); `decide` reduces `checkAll 1620 1024 = true` in ~3s without `native_decide`.
 4. `two_pow_offending`, `two_pow_sub_one_offending` → `factSum_ne_of_ge_eight` → the headline theorems.
 
 ## Why the prior "no fixed modulus" belief was wrong
@@ -57,10 +62,10 @@ never implied the **power-of-two** case needs an unbounded modulus — the two w
 
 ## Provenance / honesty
 
-The `native_decide` finite checks are independently confirmed by `tools`-style Python
-(`/tmp/fns*.py` during the session): the complete solution list, the period 1620, the index-11 cap
-for both `2^m` and `2^m−1`. The headline theorems are sorry-free modulo the standard three axioms +
-the native-decide compiler-trust axiom.
+The finite checks are independently confirmed by `tools`-style Python (`/tmp/fns*.py` during the
+session): the complete solution list, the period 1620, the index-11 cap for both `2^m` and `2^m−1`.
+The headline theorems are sorry-free and depend on **only the standard three axioms**
+(`propext`, `Classical.choice`, `Quot.sound`) — no `native_decide`, no compiler-trust axiom.
 
 ## Host TODO
 
