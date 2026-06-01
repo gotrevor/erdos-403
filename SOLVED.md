@@ -66,8 +66,3 @@ The finite checks are independently confirmed by `tools`-style Python (`/tmp/fns
 session): the complete solution list, the period 1620, the index-11 cap for both `2^m` and `2^m−1`.
 The headline theorems are sorry-free and depend on **only the standard three axioms**
 (`propext`, `Classical.choice`, `Quot.sound`) — no `native_decide`, no compiler-trust axiom.
-
-## Host TODO
-
-Box has no egress — `git push` and any PR must run on the host. Branch `tier1-finiteness`.
-The formal-conjectures / erdosproblems "#403 formalized" tracker note can now be filed.
