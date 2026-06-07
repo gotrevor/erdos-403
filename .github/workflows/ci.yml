@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (lake build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # lean-action with all default inputs:
+      #   - installs the toolchain pinned in `lean-toolchain` (v4.29.1) via elan
+      #   - auto-detects the Mathlib dependency and runs `lake exe cache get`
+      #     (downloads prebuilt oleans -> no ~40-min source build)
+      #   - caches `.lake` across runs via actions/cache (keyed on lake-manifest.json)
+      #   - runs `lake build`, which builds `Erdos403` thanks to
+      #     `defaultTargets = ["Erdos403"]` in lakefile.toml
+      - uses: leanprover/lean-action@v1
+        # Optional kernel-integrity gate (verifies axiom-cleanliness; slower because
+        # it re-checks the Mathlib closure). Enable once we're happy with build times:
+        #   with:
+        #     leanchecker: true

@@ -2,6 +2,7 @@ name = "Erdos403"
 version = "0.1.0"
 keywords = ["math", "number-theory", "factorials", "erdos"]
 srcDir = "src"
+defaultTargets = ["Erdos403"]
 
 [[require]]
 name = "mathlib"
