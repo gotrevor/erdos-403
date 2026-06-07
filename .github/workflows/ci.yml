@@ -3,16 +3,23 @@ name: CI
 on:
   push:
     branches: ["main"]
+    paths-ignore: ["**.md", "LICENSE"]
   pull_request:
     branches: ["main"]
+    paths-ignore: ["**.md", "LICENSE"]
   workflow_dispatch:
+
+# A new push to the same ref cancels the stale in-flight run (you're already on the latest).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     name: Build (lake build)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # lean-action with all default inputs:
       #   - installs the toolchain pinned in `lean-toolchain` (v4.29.1) via elan
