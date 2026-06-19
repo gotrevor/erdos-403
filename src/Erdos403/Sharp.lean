@@ -111,31 +111,32 @@ theorem factDigit_mod_twelve {i : ℕ} (hi : i ≤ 11) (n : ℕ) :
   have hdvd : ((i + 1)! : ℕ) ∣ (12)! := Nat.factorial_dvd_factorial (by omega)
   rw [factDigit_mod i n, factDigit_mod i (n % (12)!), Nat.mod_mod_of_dvd n hdvd]
 
+/-- If `2^d ≡ 1 (mod n)` and `d ∣ e`, then `2^e ≡ 1 (mod n)`. Two design points keep this
+**evaluation-free**, dodging the `exponentiation.threshold` warning that an inlined literal
+version trips: (1) the multiplier `k` from `d ∣ e` stays a *variable*, so the closing
+`one_pow k` is symbolic — no concrete `1 ^ 540` is handed to the power evaluator; (2) the
+conclusion is stated as `2^e`, so a caller's expected `2^1620` binds `e := 1620` by plain
+unification rather than a defeq check `2^(d*k) =?= 2^1620` that would force `2^1620` to evaluate. -/
+private theorem two_pow_modEq_one_of_dvd {d n e : ℕ} (h : (2 : ℕ) ^ d ≡ 1 [MOD n]) (hde : d ∣ e) :
+    (2 : ℕ) ^ e ≡ 1 [MOD n] := by
+  obtain ⟨k, rfl⟩ := hde
+  calc (2 : ℕ) ^ (d * k) = ((2 : ℕ) ^ d) ^ k := by rw [pow_mul]
+    _ ≡ 1 ^ k [MOD n] := h.pow k
+    _ = 1 := one_pow k
+
 /-- `2^1620 ≡ 1 (mod 467775)`, proved **kernel-pure via CRT** (no `native_decide`).
 `467775 = 3^5 · 5^2 · 7 · 11 = 243 · 25 · 7 · 11` (pairwise coprime); `ord(2)` modulo each
 prime power is `162, 20, 3, 10`, each dividing `1620`. The four small `decide`s are kernel
 computations; the combine is `Nat.modEq_and_modEq_iff_modEq_mul`. -/
 private theorem two_pow_1620_odd : (2 : ℕ) ^ 1620 % 467775 = 1 := by
-  have h243 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 243] := by
-    have b : (2 : ℕ) ^ 162 ≡ 1 [MOD 243] := by decide
-    calc (2 : ℕ) ^ 1620 = (2 ^ 162) ^ 10 := by rw [← pow_mul]
-      _ ≡ 1 ^ 10 [MOD 243] := b.pow 10
-      _ = 1 := one_pow 10
-  have h25 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 25] := by
-    have b : (2 : ℕ) ^ 20 ≡ 1 [MOD 25] := by decide
-    calc (2 : ℕ) ^ 1620 = (2 ^ 20) ^ 81 := by rw [← pow_mul]
-      _ ≡ 1 ^ 81 [MOD 25] := b.pow 81
-      _ = 1 := one_pow 81
-  have h7 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 7] := by
-    have b : (2 : ℕ) ^ 3 ≡ 1 [MOD 7] := by decide
-    calc (2 : ℕ) ^ 1620 = (2 ^ 3) ^ 540 := by rw [← pow_mul]
-      _ ≡ 1 ^ 540 [MOD 7] := b.pow 540
-      _ = 1 := one_pow 540
-  have h11 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 11] := by
-    have b : (2 : ℕ) ^ 10 ≡ 1 [MOD 11] := by decide
-    calc (2 : ℕ) ^ 1620 = (2 ^ 10) ^ 162 := by rw [← pow_mul]
-      _ ≡ 1 ^ 162 [MOD 11] := b.pow 162
-      _ = 1 := one_pow 162
+  have h243 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 243] :=
+    two_pow_modEq_one_of_dvd (by decide : (2 : ℕ) ^ 162 ≡ 1 [MOD 243]) (by norm_num)
+  have h25 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 25] :=
+    two_pow_modEq_one_of_dvd (by decide : (2 : ℕ) ^ 20 ≡ 1 [MOD 25]) (by norm_num)
+  have h7 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 7] :=
+    two_pow_modEq_one_of_dvd (by decide : (2 : ℕ) ^ 3 ≡ 1 [MOD 7]) (by norm_num)
+  have h11 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 11] :=
+    two_pow_modEq_one_of_dvd (by decide : (2 : ℕ) ^ 10 ≡ 1 [MOD 11]) (by norm_num)
   have c1 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 243 * 25] :=
     (Nat.modEq_and_modEq_iff_modEq_mul (by decide)).mp ⟨h243, h25⟩
   have c2 : (2 : ℕ) ^ 1620 ≡ 1 [MOD 243 * 25 * 7] :=
