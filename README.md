@@ -1,5 +1,19 @@
 # Erdős Problem #403 in Lean 4 🔢
 
+> [!IMPORTANT]
+> **The maintained formalization now lives in [gotrevor/lean-gallery](https://github.com/gotrevor/lean-gallery).**
+>
+> Both headlines were re-homed to [`LeanGallery/NumberTheory/Erdos403/`](https://github.com/gotrevor/lean-gallery/tree/main/LeanGallery/NumberTheory/Erdos403)
+> as `LeanGallery.NumberTheory.Erdos403.erdos_403_finite` and `…erdos_403_sharp`. There they are
+> kept building against current mathlib, gated in CI by a `#print axioms` audit that asserts the
+> exact triple `[propext, Classical.choice, Quot.sound]`, and checked statement-for-statement by
+> [`comparator`](https://github.com/leanprover/comparator) against a Mathlib-only rendering — so a
+> stranger can verify the result without trusting this author.
+>
+> **This repository is the original development.** It is kept public for its writeup and
+> provenance, but it is pinned to Lean v4.31.0 and is not forward-ported: read it as a snapshot,
+> and take the gallery as the source of truth for the current statements and proofs.
+
 A complete, **kernel-pure** Lean 4 formalization of [Erdős problem #403](https://www.erdosproblems.com/403).
 
 ## The problem
